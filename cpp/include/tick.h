@@ -1,11 +1,15 @@
-#ifndef MIKU_TEMPLAR_TICK_WITH_MAX_MIN
-#define MIKU_TEMPLAR_TICK_WITH_MAX_MIN
+#ifndef MIKU_TEMPLAR_TICK_H_
+#define MIKU_TEMPLAR_TICK_H_
+
+#include <vector>
+#include <string>
 namespace MikuTemplar{
 template <class T>
-struct Tick{
-    std::size_t index_;
-    std::string datetime_;
+struct Tick {
+    size_t index_;
     T price_;
+    std::string datatime_;
 };
 }
+
 #endif

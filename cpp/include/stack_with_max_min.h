@@ -1,26 +1,33 @@
+#ifndef MIKU_TEMPLAR_STACK_WITH_MAX_MIN_H_
+#define MIKU_TEMPLAR_STACK_WITH_MAX_MIN_H_
+
 #include <cstdint>
 #include <stack>
-#ifndef MIKU_TEMPLAR_STACK_WITH_MAX_MIN
-#define MIKU_TEMPLAR_STACK_WITH_MAX_MIN
 namespace MikuTemplar{
 
 template <class T>
 class StackWithMaxMin {
+    private:
+        std::stack<T> stack_;
+        std::stack<T> min_stack_;
+        std::stack<T> max_stack_;
     public:
         void push(T val) {
             if (this->isEmpty()){
                 min_stack_.push(val);
                 max_stack_.push(val);
             } else {
-                min_stack_.push(min(min_stack_.top(), val));
-                max_stack_.push(max(max_stack_.top(), val));
+                min_stack_.push(std::min(min_stack_.top(), val));
+                max_stack_.push(std::max(max_stack_.top(), val));
             }
             stack_.push(val);
         }
         T pop() {
             min_stack_.pop();
             max_stack_.pop();
-            return stack_.pop();
+            auto res = stack_.top();
+            stack_.pop();
+            return res;
         }
         T min() {
             return min_stack_.top();
@@ -34,10 +41,6 @@ class StackWithMaxMin {
         bool isEmpty() {
             return stack_.empty();
         }
-    private:
-        std::stack<T> stack_;
-        std::stack<T> min_stack_;
-        std::stack<T> max_stack_;
 };
 
 }

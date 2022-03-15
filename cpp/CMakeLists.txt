@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 set(CMAKE_CXX_STANDARD 17)
+
 include_directories("include")
-add_executable(ext "src/ext.cpp")
+add_executable(martin_ext "src/martin_ext.cpp")
+add_executable(martin_sim "src/martin_sim.cpp")
+add_executable(playground "src/playground.cpp")
