@@ -35,10 +35,10 @@ class StackWithMaxMin {
         T max() {
             return max_stack_.top();
         }
-        std::size_t size() {
+        std::size_t size() const {
             return stack_.size();
         }
-        bool isEmpty() {
+        bool isEmpty() const {
             return stack_.empty();
         }
 };

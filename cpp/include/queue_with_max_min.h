@@ -14,8 +14,10 @@ public:
     }
 
     T pop() {
-        while (!s0_.isEmpty()) {
-            s1_.push(s0_.pop());
+        if (s1_.isEmpty()) {
+            while (!s0_.isEmpty()) {
+                s1_.push(s0_.pop());
+            }
         }
         return s1_.pop();
     }

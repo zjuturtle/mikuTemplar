@@ -12,18 +12,15 @@ struct ExtDataFrame : public OriginDataFrame<T> {
     size_t smallWindow_;
     size_t largeWindow_;
 
-    std::vector<T> futureMaxSmallWindow_;
-    std::vector<T> futureMinSmallWindow_;
+    std::vector<T> futureBidMaxSmallWindow_;
+    std::vector<T> futureBidMinSmallWindow_;
+    std::vector<T> futureBidMaxLargeWindow_;
+    std::vector<T> futureBidMinLargeWindow_;
 
-    std::vector<T> futureMaxLargeWindow_;
-    std::vector<T> futureMinLargeWindow_;
-
-    void assign(const OriginDataFrame<T>& df) {
-        this->priceName_ = df.priceName_;
-        this->datetime_ = df.datetime_;
-        this->price_ = df.price_;
-        this->index_ = df.index_;
-    }
+    std::vector<T> futureAskMaxSmallWindow_;
+    std::vector<T> futureAskMinSmallWindow_;
+    std::vector<T> futureAskMaxLargeWindow_;
+    std::vector<T> futureAskMinLargeWindow_;
 };
 }
 

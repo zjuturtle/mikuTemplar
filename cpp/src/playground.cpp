@@ -9,6 +9,4 @@ int main(int argc, char *argv[]){
     ff.push(1);
     ff.push(2);
     ff.push(3);
-
-    
 }
