@@ -17,7 +17,7 @@ using namespace MikuTemplar;
 using namespace std;
 
 int main(int argc, char *argv[]){
-    cxxopts::Options options("martin sample", "Sample forex preprocessed tick raw data to generate tick data");
+    cxxopts::Options options("martin sampling", "Sample forex preprocessed tick raw data to generate tick data");
     options.add_options()
         ("input", "input preprocessed tick csv file", cxxopts::value<string>())
         ("output", "output sample tick csv file", cxxopts::value<string>())
@@ -26,8 +26,8 @@ int main(int argc, char *argv[]){
 
     auto result = options.parse(argc, argv);
     if (result.count("help")){
-      std::cout << options.help() << std::endl;
-      exit(0);
+        std::cout << options.help() << std::endl;
+        exit(0);
     }
 
     auto inputDataFrame = loadOriginCsv<DATA_TYPE>(result["input"].as<string>());
