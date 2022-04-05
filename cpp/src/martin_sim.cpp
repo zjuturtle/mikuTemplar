@@ -14,6 +14,13 @@
 using namespace MikuTemplar;
 using namespace std;
 
+/**
+ * @brief Search every hit in extDataFrame by given OriginDataFrame
+ * 
+ * @param extDataFrame 
+ * @param openOriginDataFrame 
+ * @return vector<size_t> 
+ */
 vector<size_t> locateOpenArrayIndex(const ExtDataFrame<DATA_TYPE> &extDataFrame,
                                     const OriginDataFrame<DATA_TYPE> &openOriginDataFrame) {
     vector<size_t> result;
@@ -31,21 +38,41 @@ vector<size_t> locateOpenArrayIndex(const ExtDataFrame<DATA_TYPE> &extDataFrame,
 }
 
 bool couldSkipWindow(const Operation op,
-                     const DATA_TYPE nextStopProfitPrice,
-                     const DATA_TYPE nextAddPositionPrice,
+                     bool stopLossFlag,
+                     const DATA_TYPE stopLossPrice,
+                     const DATA_TYPE stopProfitPrice,
+                     const DATA_TYPE addPositionPrice,
                      const DATA_TYPE futureBidMax, 
                      const DATA_TYPE futureBidMin,
                      const DATA_TYPE futureAskMax,
                      const DATA_TYPE futureAskMin){
     // BUY as ask price and SELL as bid price
     if (op == Operation::BUY) {
-        // stop profit operation is SELL(in bid price), add position is BUY(in ask price)
-        return nextAddPositionPrice < futureAskMin  && futureBidMax < nextStopProfitPrice;
+        // stop profit is SELL(in bid price)
+        auto shouldStopProfitInWindow = futureBidMax > stopProfitPrice;
+        if (stopLossFlag) {
+            // stop loss is SELL(in bid price) 
+            auto shouldStopLossInWindow = futureBidMin < stopLossPrice;
+            return !(shouldStopProfitInWindow || shouldStopLossInWindow);
+        } else {
+            // add position is BUY(in ask price)
+            auto shouldAddPosition = futureAskMin < addPositionPrice;
+            return !(shouldStopProfitInWindow || shouldAddPosition);
+        }
     }
 
     if (op == Operation::SELL) {
-        // stop profit operation is BUY(in ask price), add position is SELL(in bid price)
-        return nextStopProfitPrice < futureAskMax && futureBidMin > nextAddPositionPrice;
+        // stop profit is BUY(in ask price)
+        auto shouldStopProfitInWindow = futureAskMin < stopProfitPrice;
+        if (stopLossFlag) {
+            // stop loss is BUY(in ask price)
+            auto shouldStopLossInWindow = futureAskMax > stopLossPrice;
+            return !(shouldStopProfitInWindow || shouldStopLossInWindow); 
+        } else {
+            // add position is SELL(in bid price)
+            auto shouldAddPositionInWindow = futureBidMax > addPositionPrice;
+            return !(shouldStopProfitInWindow || shouldAddPositionInWindow);
+        }
     }
     return false;
 }
@@ -75,24 +102,22 @@ MartinResult martinSim(
     auto openBidPrice = extDataFrame.bid_[openArrayIndex];
     auto openAskPrice = extDataFrame.ask_[openArrayIndex];
     DATA_TYPE nextStopProfitPrice, nextAddPositionPrice, stopLossPrice;
-    vector<int> addPositionArrayIndexs;
-    addPositionArrayIndexs.push_back(openArrayIndex);
+    martinResult.addPositions_.push_back(openArrayIndex);
 
     stopLossPrice = [&]() {
-        if (op == Operation::BUY) return openBidPrice + martinStopLossTarget;
-        
+        if (op == Operation::BUY) return openBidPrice - martinStopLossTarget;
+        if (op == Operation::SELL) return openAskPrice + martinStopLossTarget;
+        return 0;
     }();
 
     auto updateMartin = [&]() {
         if (op == Operation::BUY) {
             nextStopProfitPrice = openBidPrice + martinPositionIntervals[currentMartinIndex];
             nextAddPositionPrice = openAskPrice + martinStopProfitTargets[currentMartinIndex];
-            nextStopLossPrice = openBidPrice + martinStopLossTargets[currentMartinIndex];
         }
         if (op == Operation::SELL) {
             nextStopProfitPrice = openAskPrice + martinPositionIntervals[currentMartinIndex];
             nextAddPositionPrice =  openBidPrice + martinStopProfitTargets[currentMartinIndex];
-            nextStopLossPrice = openAskPrice + martinStopLossTargets[currentMartinIndex];
         }
         currentMartinIndex++;
     };
@@ -103,8 +128,10 @@ MartinResult martinSim(
     // Loop 
     auto currentArrayIndex = openArrayIndex;
     while (true) {
+        bool stopLossFlag = currentMartinIndex == martinPositionIntervals.size();
+
         // skip large window if possible
-        if (couldSkipWindow(op, nextStopProfitPrice, nextStopLossPrice,
+        if (couldSkipWindow(op, stopLossFlag, stopLossPrice, nextStopProfitPrice, nextAddPositionPrice,
                     extDataFrame.futureBidMaxLargeWindow_[currentArrayIndex], 
                     extDataFrame.futureBidMinLargeWindow_[currentArrayIndex],
                     extDataFrame.futureAskMaxLargeWindow_[currentArrayIndex],
@@ -114,7 +141,7 @@ MartinResult martinSim(
         }
 
         // skip small window if possible
-        if (couldSkipWindow(op, nextStopProfitPrice, nextStopLossPrice,
+        if (couldSkipWindow(op, stopLossFlag, stopLossPrice, nextStopProfitPrice, nextAddPositionPrice,
                     extDataFrame.futureBidMaxSmallWindow_[currentArrayIndex], 
                     extDataFrame.futureBidMinSmallWindow_[currentArrayIndex],
                     extDataFrame.futureAskMaxSmallWindow_[currentArrayIndex],
@@ -125,6 +152,27 @@ MartinResult martinSim(
 
         martinResult.closeType_ = CloseType::NOT_CLOSE;
         for (;currentArrayIndex < extDataFrame.size(); currentArrayIndex++) {
+            auto currentAsk = extDataFrame.ask_[currentArrayIndex];
+            auto currentBid = extDataFrame.bid_[currentArrayIndex];
+
+            // stop loss
+            auto const shouldStopLoss = [&]() {
+                if (op == Operation::BUY) {
+                    // stop loss is SELL(in bid price) 
+                    return stopLossFlag && stopLossPrice < currentBid;
+                }
+                if (op == Operation::SELL) {
+                    // stop loss is BUY(in ask price)
+                    return stopLossFlag && stopLossPrice > currentAsk;
+                }
+                return false;
+            }();
+            if (shouldStopLoss) {
+                martinResult.closeArrayIndex_ = currentArrayIndex;
+                martinResult.closeType_ = CloseType::STOP_LOSS;
+                return martinResult;
+            }
+
             // add position
             auto const shouldAddPosition = [&](){
                 if (op == Operation::BUY) {
@@ -136,7 +184,7 @@ MartinResult martinSim(
                 return false;
             }();
             if (shouldAddPosition) {
-                addPositionArrayIndexs.push_back(currentArrayIndex);
+                martinResult.addPositions_.push_back(currentArrayIndex);
                 updateMartin();
                 break;
             }
@@ -154,15 +202,15 @@ MartinResult martinSim(
             if (shouldStopProfit) {
                 martinResult.closeArrayIndex_ = currentArrayIndex;
                 martinResult.closeType_ = CloseType::STOP_PROFIT;
-                break;
+                return martinResult;
             }
-
-            // 
-            if (extDataFrame.ask_[currentArrayIndex] )
         }
-
         
-
+        if (currentArrayIndex >= extDataFrame.size()) {
+            martinResult.closeArrayIndex_ = extDataFrame.size()-1;
+            martinResult.closeType_ = CloseType::STOP_EARLY;
+            return martinResult;
+        }
     }
 }
 
@@ -260,6 +308,8 @@ int main(int argc, char *argv[]){
     auto extDataFrame = loadExtCsv<DATA_TYPE>(result["input_ext"].as<string>());
     auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(result["input_open_index"].as<string>());
 
-    auto openExtArrayIndex = locateOpenArrayIndex(extDataFrame, openOriginDataFrame);
-
+    auto locateExtArrayIndex = locateOpenArrayIndex(extDataFrame, openOriginDataFrame);
+    for (auto it = locateExtArrayIndex.cbegin(); it != locateExtArrayIndex.cend(); it++) {
+        *it;
+    }
 }
