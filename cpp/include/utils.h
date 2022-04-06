@@ -23,6 +23,15 @@ std::vector<std::string> split(const std::string &input, const char spliter=',')
     return result;
 }
 
+template<class T, class F>
+std::vector<T> cast(const std::vector<F> &input) {
+    std::vector<T> result;
+    for (auto it = input.cbegin(); it != input.cende(); it++) {
+        result.push_back(it);
+    }
+    return result;
+}
+
 // trim from start (in place)
 static inline void ltrim(std::string &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {

@@ -109,5 +109,23 @@ void saveOriginCsv(const std::string &outputFile, const OriginDataFrame<T> &orig
     file.close();
 }
 
+template <class T>
+void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &martinDataFrame) {
+    std::fstream file(outputFile, std::ios::out);
+    file << Key::INDEX << "," << Key::DATETIME << ","
+         << Key::BID << "," << Key::ASK ;
+    martinDataFrame.
+
+    for (std::size_t index=0; index < martinDataFrame.size();index++) {
+        file << martinDataFrame.index_[index]<<","
+             << martinDataFrame.datetime_[index]<<","
+             << martinDataFrame.bid_[index] << "," 
+             << martinDataFrame.ask_[index];
+         
+        file << endl;
+    }
+    file.close();
+}
+
 }
 #endif

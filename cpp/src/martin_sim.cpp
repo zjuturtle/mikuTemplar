@@ -102,7 +102,7 @@ MartinResult martinSim(
     auto openBidPrice = extDataFrame.bid_[openArrayIndex];
     auto openAskPrice = extDataFrame.ask_[openArrayIndex];
     DATA_TYPE nextStopProfitPrice, nextAddPositionPrice, stopLossPrice;
-    martinResult.addPositions_.push_back(openArrayIndex);
+    martinResult.addPositionsArrayIndex_.push_back(openArrayIndex);
 
     stopLossPrice = [&]() {
         if (op == Operation::BUY) return openBidPrice - martinStopLossTarget;
@@ -184,7 +184,7 @@ MartinResult martinSim(
                 return false;
             }();
             if (shouldAddPosition) {
-                martinResult.addPositions_.push_back(currentArrayIndex);
+                martinResult.addPositionsArrayIndex_.push_back(currentArrayIndex);
                 updateMartin();
                 break;
             }
@@ -206,6 +206,7 @@ MartinResult martinSim(
             }
         }
         
+        // early stop (reach the end of extDataFrame)
         if (currentArrayIndex >= extDataFrame.size()) {
             martinResult.closeArrayIndex_ = extDataFrame.size()-1;
             martinResult.closeType_ = CloseType::STOP_EARLY;
@@ -214,88 +215,16 @@ MartinResult martinSim(
     }
 }
 
-MartinDataFrame<DATA_TYPE> martinSim(
-    const ExtDataFrame<DATA_TYPE> &extDataFrame,
-    const vector<size_t> &openExtArrayIndex,
-    const Operation &op,
-    const vector<DATA_TYPE> &martinIntervals,
-    const vector<DATA_TYPE> &martinTargets) {
-    
-    // BUY as ask price and SELL as bid price
-    for (auto it=openExtArrayIndex.cbegin();it!=openExtArrayIndex.cend();it++) {
-        auto openIndex = *it;
-        auto currentMartinIndex = 0;
-        auto currentIndex = openIndex;
-        auto openBidPrice = extDataFrame.bid_[openIndex];
-        auto openAskPrice = extDataFrame.ask_[openIndex];
-        DATA_TYPE nextClosePrice, nextAddPositionPrice;
-        vector<int> addPositionIndexs;
-        int closeIndex = -1;
-        addPositionIndexs.push_back(openIndex);
-        if (op == Operation::BUY) {
-            nextClosePrice = openBidPrice + martinIntervals[currentMartinIndex];
-            nextAddPositionPrice = openAskPrice + martinTargets[currentMartinIndex];
-        }
-
-        if (op == Operation::SELL) {
-            nextClosePrice = openAskPrice + martinIntervals[currentMartinIndex];
-            nextAddPositionPrice =  openBidPrice + martinTargets[currentMartinIndex];
-        }
-        
-        while (true) {
-            // skip large window if possible
-            if (couldSkipWindow(op, nextClosePrice, nextAddPositionPrice,
-                     extDataFrame.futureBidMaxLargeWindow_[currentIndex], 
-                     extDataFrame.futureBidMinLargeWindow_[currentIndex],
-                     extDataFrame.futureAskMaxLargeWindow_[currentIndex],
-                     extDataFrame.futureAskMinLargeWindow_[currentIndex])) {
-                currentIndex += extDataFrame.largeWindow_;
-                continue;
-            }
-
-            // skip small window if possible
-            if (couldSkipWindow(op, nextClosePrice, nextAddPositionPrice,
-                     extDataFrame.futureBidMaxSmallWindow_[currentIndex], 
-                     extDataFrame.futureBidMinSmallWindow_[currentIndex],
-                     extDataFrame.futureAskMaxSmallWindow_[currentIndex],
-                     extDataFrame.futureAskMinSmallWindow_[currentIndex])) {
-                currentIndex += extDataFrame.smallWindow_;
-                continue;
-            }
-
-            for (;currentIndex < extDataFrame.size(); currentIndex++) {
-                // Need add position
-                if (extDataFrame.ask_[currentIndex] <= nextAddPositionPrice) {
-                    currentMartinIndex++;
-                    addPositionIndexs.push_back(currentIndex);
-                    nextClosePrice = openBidPrice + martinTargets[currentMartinIndex];
-                    nextAddPositionPrice = openAskPrice + martinIntervals[currentMartinIndex];
-                    break;
-                }
-                // Need close
-                if (extDataFrame.bid_[currentIndex] >= nextClosePrice) {
-                    closeIndex = currentIndex;
-                    break;
-                }
-            }
-
-            if (closeIndex >=0 ) {
-                break;
-            }
-        }
-    }
-    
-}
-
 int main(int argc, char *argv[]){
-    cxxopts::Options options("martin sim", "Simulate martin process for each second");
+    cxxopts::Options options("martin sim", "Simulate martin process for each input open row.");
     options.add_options()
         ("input_ext", "input ext csv file", cxxopts::value<string>())
-        ("input_open","input open csv file", cxxopts::value<string>())
-        ("action", "open direction, bid or ask", cxxopts::value<string>())
+        ("input_open","input open csv file. must included in input_ext", cxxopts::value<string>())
+        ("operation", "open direction, buy or sell", cxxopts::value<string>())
         ("output", "output martin result csv file path", cxxopts::value<string>())
-        ("martin_interval", "martin intervals, in list form", cxxopts::value<vector<int>>())
-        ("martin_target","martin close target, in list form", cxxopts::value<vector<int>>())
+        ("martin_position_intervals", "martin add position intervals, in list form", cxxopts::value<vector<int>>())
+        ("martin_stop_profits","martin stop profit target, in list form", cxxopts::value<vector<int>>())
+        ("martin_stop_loss", "martin stop loss target", cxxopts::value<int>())
         ("h,help", "Print usage")
     ;
 
@@ -305,11 +234,26 @@ int main(int argc, char *argv[]){
       exit(0);
     }
 
+    auto operation = GenerateOperation(result["operation"].as<string>());
     auto extDataFrame = loadExtCsv<DATA_TYPE>(result["input_ext"].as<string>());
-    auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(result["input_open_index"].as<string>());
+    auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(result["input_open"].as<string>());
 
-    auto locateExtArrayIndex = locateOpenArrayIndex(extDataFrame, openOriginDataFrame);
-    for (auto it = locateExtArrayIndex.cbegin(); it != locateExtArrayIndex.cend(); it++) {
-        *it;
+    auto locateExtArrayIndexs = locateOpenArrayIndex(extDataFrame, openOriginDataFrame);
+
+    MartinDataFrame<DATA_TYPE> martinDataFrame(
+        cast<DATA_TYPE>(result["martin_position_intervals"].as<vector<int>>()),
+        cast<DATA_TYPE>(result["martin_stop_profits"].as<vector<int>>()),
+        static_cast<DATA_TYPE>(result["martin_stop_loss"].as<int>())
+    );
+    for (auto it = locateExtArrayIndexs.cbegin(); it != locateExtArrayIndexs.cend(); it++) {
+        auto openArrayIndex = *it;
+        auto martinResult = martinSim(extDataFrame, openArrayIndex, operation, 
+                                      martinDataFrame.addPositionIntervals_, 
+                                      martinDataFrame.stopProfitTargets_, 
+                                      martinDataFrame.stopLossTarget_);
+        martinDataFrame.appendMartinResult(martinResult);
     }
+
+    saveMartinCsv(result["output"].as<string>(), martinDataFrame);
+    
 }
