@@ -9,6 +9,7 @@
 #include "const.h"
 #include "tick.h"
 #include "utils.h"
+#include "martin_dataframe.h"
 #include "ext_dataframe.h"
 #include "origin_dataframe.h"
 
@@ -113,16 +114,32 @@ template <class T>
 void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &martinDataFrame) {
     std::fstream file(outputFile, std::ios::out);
     file << Key::INDEX << "," << Key::DATETIME << ","
-         << Key::BID << "," << Key::ASK ;
-    martinDataFrame.
+         << Key::BID << "," << Key::ASK 
+         << Key::OPERATION << "," <<Key::CLOSE_TYPE << Key::CLOSE_ARRAY_INDEX
+         << Key::ADD_POSITION_COUNT;
+    
+    for (int i=0;i<martinDataFrame.addPositionIntervals_.size();i++) {
+        file << ","<< Key::ADD_POSITION_ARRAY_INDEX << i;
+    }
+    file << std::endl;
 
-    for (std::size_t index=0; index < martinDataFrame.size();index++) {
-        file << martinDataFrame.index_[index]<<","
-             << martinDataFrame.datetime_[index]<<","
-             << martinDataFrame.bid_[index] << "," 
-             << martinDataFrame.ask_[index];
-         
-        file << endl;
+    for (std::size_t i=0; i < martinDataFrame.size();i++) {
+        file << martinDataFrame.index_[i]<<","
+             << martinDataFrame.datetime_[i]<<","
+             << martinDataFrame.bid_[i] << "," 
+             << martinDataFrame.ask_[i] << ","
+             << toString(martinDataFrame.operation_[i]) << ","
+             << toString(martinDataFrame.closeType_[i]) << ","
+             << martinDataFrame.closeArrayIndex_[i] << ","
+             << martinDataFrame.addPositionsArrayIndex_.size();
+
+        for (auto it=martinDataFrame.addPositionsArrayIndex_[i].cbegin();
+            it != martinDataFrame.addPositionsArrayIndex_[i].cend();
+            it++) {
+            file << ","<<(*it);
+        }
+
+        file << std::endl;
     }
     file.close();
 }

@@ -26,8 +26,8 @@ std::vector<std::string> split(const std::string &input, const char spliter=',')
 template<class T, class F>
 std::vector<T> cast(const std::vector<F> &input) {
     std::vector<T> result;
-    for (auto it = input.cbegin(); it != input.cende(); it++) {
-        result.push_back(it);
+    for (auto it = input.cbegin(); it != input.cend(); it++) {
+        result.push_back(*it);
     }
     return result;
 }

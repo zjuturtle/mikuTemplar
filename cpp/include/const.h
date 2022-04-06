@@ -10,10 +10,11 @@ namespace Key {
     const std::string BID = "bid";
     const std::string ASK = "ask";
 
-    const std::string CLOSE_TYPE = "closeType";
-    const std::string CLOSE_ARRAY_INDEX = "closeArrayIndex";
     const std::string OPERATION = "operation";
-    const std::string 
+    const std::string CLOSE_ARRAY_INDEX = "closeArrayIndex";
+    const std::string CLOSE_TYPE = "closeType";
+    const std::string ADD_POSITION_COUNT = "addPositionCount";
+    const std::string ADD_POSITION_ARRAY_INDEX = "addPositionArrayIndex";
 
     const std::string FUTURE_BID_MAX_SMALL_WINDOW = "futureBidMaxSmallWindow";
     const std::string FUTURE_BID_MIN_SMALL_WINDOW = "futureBidMinSmallWindow";

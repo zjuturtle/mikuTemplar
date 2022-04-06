@@ -11,7 +11,14 @@ enum Operation{
     BUY, SELL
 };
 
-Operation GenerateOperation(const std::string &input) {
+std::string toString(const Operation &op) {
+    switch (op){
+        case Operation::BUY:  return "BUY";
+        case Operation::SELL: return "SELL"; 
+    }
+}
+
+Operation generateOperation(const std::string &input) {
     if (input == "buy" || input == "BUY") {
         return Operation::BUY;
     }
@@ -28,6 +35,15 @@ enum CloseType{
     STOP_LOSS,    // close all position with loss
     STOP_EARLY    // no more data avaiable so it is an early stop
 };
+
+std::string toString(const CloseType &closeType) {
+    switch (closeType){
+        case NOT_CLOSE:   return "notClose";
+        case STOP_PROFIT: return "stopProfit";
+        case STOP_LOSS:   return "stopLoss";
+        case STOP_EARLY:  return "stopEarly";
+    }
+}
 
 typedef std::vector<std::size_t> ArrayIndexList;
 
@@ -60,7 +76,7 @@ struct MartinDataFrame : public OriginDataFrame<T> {
         operation_.push_back(martinResult.op_);
         closeType_.push_back(martinResult.closeType_);
         closeArrayIndex_.push_back(martinResult.closeArrayIndex_);
-        addPositions_.push_back(martinResult.addPositions_);
+        addPositionsArrayIndex_.push_back(martinResult.addPositionsArrayIndex_);
     }
 };
 }

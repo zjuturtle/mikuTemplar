@@ -234,7 +234,7 @@ int main(int argc, char *argv[]){
       exit(0);
     }
 
-    auto operation = GenerateOperation(result["operation"].as<string>());
+    auto operation = generateOperation(result["operation"].as<string>());
     auto extDataFrame = loadExtCsv<DATA_TYPE>(result["input_ext"].as<string>());
     auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(result["input_open"].as<string>());
 
@@ -255,5 +255,5 @@ int main(int argc, char *argv[]){
     }
 
     saveMartinCsv(result["output"].as<string>(), martinDataFrame);
-    
+
 }
