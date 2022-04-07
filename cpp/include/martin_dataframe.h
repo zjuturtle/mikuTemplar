@@ -72,11 +72,12 @@ struct MartinDataFrame : public OriginDataFrame<T> {
                     stopProfitTargets_(stopProfitTargets),
                     stopLossTarget_(stopLossTarget){}
 
-    void appendMartinResult(const MartinResult &martinResult) {
+    void appendMartinResult(const MartinResult &martinResult, const Tick<T>& tick) {
         operation_.push_back(martinResult.op_);
         closeType_.push_back(martinResult.closeType_);
         closeArrayIndex_.push_back(martinResult.closeArrayIndex_);
         addPositionsArrayIndex_.push_back(martinResult.addPositionsArrayIndex_);
+        this->append(tick);
     }
 };
 }

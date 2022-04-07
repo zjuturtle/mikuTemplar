@@ -114,8 +114,8 @@ template <class T>
 void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &martinDataFrame) {
     std::fstream file(outputFile, std::ios::out);
     file << Key::INDEX << "," << Key::DATETIME << ","
-         << Key::BID << "," << Key::ASK 
-         << Key::OPERATION << "," <<Key::CLOSE_TYPE << Key::CLOSE_ARRAY_INDEX
+         << Key::BID << "," << Key::ASK << ","
+         << Key::OPERATION << "," <<Key::CLOSE_TYPE << "," << Key::CLOSE_ARRAY_INDEX << ","
          << Key::ADD_POSITION_COUNT;
     
     for (int i=0;i<martinDataFrame.addPositionIntervals_.size();i++) {
@@ -131,7 +131,7 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
              << toString(martinDataFrame.operation_[i]) << ","
              << toString(martinDataFrame.closeType_[i]) << ","
              << martinDataFrame.closeArrayIndex_[i] << ","
-             << martinDataFrame.addPositionsArrayIndex_.size();
+             << martinDataFrame.addPositionsArrayIndex_[i].size();
 
         for (auto it=martinDataFrame.addPositionsArrayIndex_[i].cbegin();
             it != martinDataFrame.addPositionsArrayIndex_[i].cend();
