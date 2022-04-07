@@ -126,10 +126,18 @@ MartinResult martinSim(
     // Assign next close price and add position price depends on BUY or SELL
     updateMartin();
 
+    if (openArrayIndex == 308)
+        cout << "stop"; 
     // Loop till close
     auto currentArrayIndex = openArrayIndex + 1;
     while (true) {
         bool stopLossFlag = currentMartinIndex == martinPositionIntervals.size();
+        // early stop (reach the end of extDataFrame)
+        if (currentArrayIndex >= extDataFrame.size()) {
+            martinResult.closeArrayIndex_ = extDataFrame.size()-1;
+            martinResult.closeType_ = CloseType::STOP_EARLY;
+            return martinResult;
+        }
 
         // skip large window if possible
         if (couldSkipWindow(op, stopLossFlag, stopLossPrice, nextStopProfitPrice, nextAddPositionPrice,
@@ -207,12 +215,7 @@ MartinResult martinSim(
             }
         }
         
-        // early stop (reach the end of extDataFrame)
-        if (currentArrayIndex >= extDataFrame.size()) {
-            martinResult.closeArrayIndex_ = extDataFrame.size()-1;
-            martinResult.closeType_ = CloseType::STOP_EARLY;
-            return martinResult;
-        }
+        
     }
 }
 
