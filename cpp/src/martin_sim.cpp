@@ -49,28 +49,28 @@ bool couldSkipWindow(const Operation op,
     // BUY as ask price and SELL as bid price
     if (op == Operation::BUY) {
         // stop profit is SELL(in bid price)
-        auto shouldStopProfitInWindow = futureBidMax > stopProfitPrice;
+        auto shouldStopProfitInWindow = futureBidMax >= stopProfitPrice;
         if (stopLossFlag) {
             // stop loss is SELL(in bid price) 
-            auto shouldStopLossInWindow = futureBidMin < stopLossPrice;
+            auto shouldStopLossInWindow = futureBidMin <= stopLossPrice;
             return !(shouldStopProfitInWindow || shouldStopLossInWindow);
         } else {
             // add position is BUY(in ask price)
-            auto shouldAddPosition = futureAskMin < addPositionPrice;
+            auto shouldAddPosition = futureAskMin <= addPositionPrice;
             return !(shouldStopProfitInWindow || shouldAddPosition);
         }
     }
 
     if (op == Operation::SELL) {
         // stop profit is BUY(in ask price)
-        auto shouldStopProfitInWindow = futureAskMin < stopProfitPrice;
+        auto shouldStopProfitInWindow = futureAskMin <= stopProfitPrice;
         if (stopLossFlag) {
             // stop loss is BUY(in ask price)
-            auto shouldStopLossInWindow = futureAskMax > stopLossPrice;
+            auto shouldStopLossInWindow = futureAskMax >= stopLossPrice;
             return !(shouldStopProfitInWindow || shouldStopLossInWindow); 
         } else {
             // add position is SELL(in bid price)
-            auto shouldAddPositionInWindow = futureBidMax > addPositionPrice;
+            auto shouldAddPositionInWindow = futureBidMax >= addPositionPrice;
             return !(shouldStopProfitInWindow || shouldAddPositionInWindow);
         }
     }
@@ -106,19 +106,24 @@ MartinResult martinSim(
     martinResult.addPositionsArrayIndex_.push_back(openArrayIndex);
 
     stopLossPrice = [&]() {
-        if (op == Operation::BUY) return openBidPrice - martinStopLossTarget;
-        if (op == Operation::SELL) return openAskPrice + martinStopLossTarget;
+        if (op == Operation::BUY) return openAskPrice - martinStopLossTarget;
+        if (op == Operation::SELL) return openBidPrice + martinStopLossTarget;
         return 0;
     }();
 
     auto updateMartin = [&]() {
         if (op == Operation::BUY) {
-            nextStopProfitPrice = openAskPrice + martinStopProfitTargets[currentMartinIndex];
-            nextAddPositionPrice = openAskPrice - martinPositionIntervals[currentMartinIndex];
+            if (currentMartinIndex < martinPositionIntervals.size())
+                nextAddPositionPrice = openAskPrice - martinPositionIntervals[currentMartinIndex+1];
+            auto lastAddPositionPrice = openAskPrice - martinPositionIntervals[currentMartinIndex];
+            nextStopProfitPrice = lastAddPositionPrice + martinStopProfitTargets[currentMartinIndex];
+            
         }
         if (op == Operation::SELL) {
-            nextStopProfitPrice = openBidPrice - martinStopProfitTargets[currentMartinIndex];
-            nextAddPositionPrice =  openBidPrice + martinPositionIntervals[currentMartinIndex];
+            if (currentMartinIndex < martinPositionIntervals.size())
+                nextAddPositionPrice =  openBidPrice + martinPositionIntervals[currentMartinIndex+1];
+            auto lastAddPositionPrice = openBidPrice + martinPositionIntervals[currentMartinIndex];
+            nextStopProfitPrice = lastAddPositionPrice - martinStopProfitTargets[currentMartinIndex];
         }
         currentMartinIndex++;
     };
@@ -159,7 +164,7 @@ MartinResult martinSim(
             continue;
         }
         
-        for (;currentArrayIndex < extDataFrame.size(); currentArrayIndex++) {
+        for (;currentArrayIndex < extDataFrame.size(); ) {
             auto currentAsk = extDataFrame.ask_[currentArrayIndex];
             auto currentBid = extDataFrame.bid_[currentArrayIndex];
 
@@ -167,11 +172,11 @@ MartinResult martinSim(
             auto const shouldStopLoss = [&]() {
                 if (op == Operation::BUY) {
                     // stop loss is SELL(in bid price) 
-                    return stopLossFlag && stopLossPrice < currentBid;
+                    return stopLossFlag && stopLossPrice >= currentBid;
                 }
                 if (op == Operation::SELL) {
                     // stop loss is BUY(in ask price)
-                    return stopLossFlag && stopLossPrice > currentAsk;
+                    return stopLossFlag && stopLossPrice <= currentAsk;
                 }
                 return false;
             }();
@@ -202,10 +207,10 @@ MartinResult martinSim(
             // stop profit
             auto const shouldStopProfit = [&]() {
                 if (op == Operation::BUY) {
-                    return extDataFrame.bid_[currentArrayIndex] >= nextStopProfitPrice;
+                    return currentBid >= nextStopProfitPrice;
                 }
                 if (op == Operation::SELL) {
-                    return extDataFrame.ask_[currentArrayIndex] <= nextStopProfitPrice;
+                    return currentAsk <= nextStopProfitPrice;
                 }
                 return false;
             }();
@@ -214,9 +219,8 @@ MartinResult martinSim(
                 martinResult.closeType_ = CloseType::STOP_PROFIT;
                 return martinResult;
             }
+            currentArrayIndex++;
         }
-        
-        
     }
 }
 
@@ -238,15 +242,13 @@ int main(int argc, char *argv[]){
       std::cout << options.help() << std::endl;
       exit(0);
     }
-    cout << "[INFO]Start martin simulate" << endl;
+    cout << "[INFO]Loading data..." << endl;
     auto operation = generateOperation(result["operation"].as<string>());
     auto extDataFrame = loadExtCsv<DATA_TYPE>(result["input_ext"].as<string>());
-    
     auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(result["input_open"].as<string>());
     cout << "[INFO]Finish data loading" << endl;
 
     auto locateExtArrayIndexs = locateOpenArrayIndex(extDataFrame, openOriginDataFrame);
-    cout << "[INFO]Finish array index locating" << endl;
 
     MartinDataFrame<DATA_TYPE> martinDataFrame(
         cast<DATA_TYPE>(result["martin_position_intervals"].as<vector<int>>()),
@@ -264,9 +266,9 @@ int main(int argc, char *argv[]){
                                       martinDataFrame.stopLossTarget_);
         martinDataFrame.appendMartinResult(martinResult, extDataFrame[openArrayIndex]);
         done++;
-        cout << "\r[INFO] "<< int(done) << "/" << int(all) << "=" << fixed << setprecision(2) << done/all * 100 << "%"; 
+        cout << "\r[INFO]Processing... "<< int(done) << "/" << int(all) << "=" << fixed << setprecision(2) << done/all * 100 << "%"; 
     }
-
+    cout << endl << "[INFO]Finish martin simulate. Writing to file..." << endl;
     saveMartinCsv(result["output"].as<string>(), martinDataFrame);
-    cout << endl << "[INFO]All done"<< endl;
+    cout  << "[INFO]All done"<< endl;
 }
