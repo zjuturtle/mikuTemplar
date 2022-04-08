@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-
 #ifndef DATA_TYPE
 #define DATA_TYPE int16_t
 #endif
