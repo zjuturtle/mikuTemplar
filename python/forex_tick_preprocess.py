@@ -46,12 +46,15 @@ if __name__ == '__main__':
 
     if os.path.isfile(args.input):
         if args.input[-3:] == 'csv':
+            print('[INFO]Detect csv file:{}'.format(args.input))
             df = read_forex_csv(args.input, args)
         if args.input[-3:] == 'zip':
+            print('[INFO]Detect zip file:{}'.format(args.input))
             df = extract(Task(zip_file_path=args.input, args=args))
         df.to_csv(args.output, index_label='index')
 
     if os.path.isdir(args.input):
+        print('[INFO]Detect directory:{}'.format(args.input))
         all_zip_files = list(filter(lambda file_name: file_name[-3:] == 'zip', os.listdir(args.input)))
         if not all_zip_files:
             print('[INFO]Not zip found in directory {}'.format(args.input))
@@ -83,8 +86,7 @@ if __name__ == '__main__':
             ), all_zip_date))
         with Pool(args.worker_num) as p:
             df_data_list=p.map(extract, all_tasks)
+        print('[INFO]writing to output...')
         final_df = pd.concat(df_data_list)
-        if args.output[-3] == 'pkl':
-            final_df.to_pickle(args.output)
-        else:
-            final_df.to_csv(args.output, index_label='index')
+        final_df.to_csv(args.output, index_label='index')
+        print('[INFO]All done!')
