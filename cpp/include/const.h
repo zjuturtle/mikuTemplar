@@ -3,6 +3,10 @@
 
 #include <string>
 
+#ifndef DATA_TYPE
+#define DATA_TYPE int16_t
+#endif
+
 namespace MikuTemplar{
 namespace Key {
     const std::string INDEX = "index";

@@ -8,11 +8,6 @@
 #include <sstream>
 #include <string>
 
-
-#ifndef DATA_TYPE
-#define DATA_TYPE int16_t
-#endif
-
 using namespace MikuTemplar;
 using namespace std;
 
