@@ -257,6 +257,7 @@ int main(int argc, char *argv[]){
     double all = locateExtArrayIndexs.size();
     for (auto it = locateExtArrayIndexs.cbegin(); it != locateExtArrayIndexs.cend(); it++) {
         auto openArrayIndex = *it;
+
         auto martinResult = martinSim(extDataFrame, openArrayIndex, operation, 
                                       martinDataFrame.addPositionIntervals_, 
                                       martinDataFrame.stopProfitTargets_, 
