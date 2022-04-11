@@ -6,5 +6,6 @@ set(SRC_CORE
     "src/core/martin_simulator.cpp")
 add_executable(martin_ext ${SRC_CORE} "src/martin_ext.cpp")
 add_executable(martin_sim ${SRC_CORE} "src/martin_sim.cpp")
+add_executable(martin_search ${SRC_CORE} "src/martin_search.cpp")
 add_executable(martin_sampling ${SRC_CORE} "src/martin_sampling.cpp")
 add_executable(playground ${SRC_CORE} "src/playground.cpp")

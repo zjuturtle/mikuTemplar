@@ -1,5 +1,5 @@
-#ifndef MIKU_TEMPLAR_CONST_H_
-#define MIKU_TEMPLAR_CONST_H_
+#ifndef MIKU_TEMPLAR_CORE_CONST_H_
+#define MIKU_TEMPLAR_CORE_CONST_H_
 
 #include <string>
 

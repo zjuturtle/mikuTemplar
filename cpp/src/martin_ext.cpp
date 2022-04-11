@@ -1,12 +1,12 @@
 #include <string>
 #include <vector>
 
-#include "cxxopt.hpp"
-#include "utils.h"
-#include "io.h"
-#include "ext_dataframe.h"
-#include "origin_dataframe.h"
-#include "queue_with_max_min.h"
+#include "utils/cxxopt.hpp"
+#include "utils/helper.h"
+#include "utils/queue_with_max_min.h"
+#include "core/io.h"
+#include "core/ext_dataframe.h"
+#include "core/origin_dataframe.h"
 
 #ifndef DATA_TYPE
 #define DATA_TYPE int16_t

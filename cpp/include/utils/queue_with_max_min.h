@@ -1,7 +1,7 @@
-#ifndef MIKU_TEMPLAR_QUEUE_WITH_MAX_MIN_H_
-#define MIKU_TEMPLAR_QUEUE_WITH_MAX_MIN_H_
+#ifndef MIKU_TEMPLAR_UTILS_QUEUE_WITH_MAX_MIN_H_
+#define MIKU_TEMPLAR_UTILS_QUEUE_WITH_MAX_MIN_H_
 
-#include "stack_with_max_min.h"
+#include "utils/stack_with_max_min.h"
 namespace MikuTemplar{
 template <class T>
 class QueueWithMaxMin{

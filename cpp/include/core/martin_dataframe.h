@@ -1,9 +1,9 @@
-#ifndef MIKU_TEMPLAR_MARTIN_DATA_FRAME_H_
-#define MIKU_TEMPLAR_MARTIN_DATA_FRAME_H_
+#ifndef MIKU_TEMPLAR_CORE_MARTIN_DATA_FRAME_H_
+#define MIKU_TEMPLAR_CORE_MARTIN_DATA_FRAME_H_
 
 #include <vector>
 #include <string>
-#include "origin_dataframe.h"
+#include "core/origin_dataframe.h"
 
 namespace MikuTemplar{
 
@@ -11,14 +11,14 @@ enum Operation{
     BUY, SELL
 };
 
-std::string toString(const Operation &op) {
+inline std::string toString(const Operation &op) {
     switch (op){
         case Operation::BUY:  return "BUY";
         case Operation::SELL: return "SELL"; 
     }
 }
 
-Operation generateOperation(const std::string &input) {
+inline Operation generateOperation(const std::string &input) {
     if (input == "buy" || input == "BUY") {
         return Operation::BUY;
     }
@@ -36,7 +36,7 @@ enum CloseType{
     STOP_EARLY    // no more data avaiable so it is an early stop
 };
 
-std::string toString(const CloseType &closeType) {
+inline std::string toString(const CloseType &closeType) {
     switch (closeType){
         case NOT_CLOSE:   return "notClose";
         case STOP_PROFIT: return "stopProfit";

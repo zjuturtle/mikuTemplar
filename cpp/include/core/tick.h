@@ -1,5 +1,5 @@
-#ifndef MIKU_TEMPLAR_TICK_H_
-#define MIKU_TEMPLAR_TICK_H_
+#ifndef MIKU_TEMPLAR_CORE_TICK_H_
+#define MIKU_TEMPLAR_CORE_TICK_H_
 
 #include <vector>
 #include <string>

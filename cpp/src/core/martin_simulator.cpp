@@ -1,14 +1,33 @@
 #include "core/martin_simulator.h"
+#include "utils/thread_pool.hpp"
 
 using namespace MikuTemplar;
 using namespace std;
 
-MartinSimulator::MartinSimulator(const string &extCsvFile) {
+MartinSimulator::MartinSimulator(const string &extCsvFile, int workerNum) {
     extDataFrame_ = loadExtCsv<DATA_TYPE>(extCsvFile);
+    workerNum_ = workerNum;
 }
 
-MartinSimulator::MartinSimulator(const ExtDataFrame<DATA_TYPE> &extDataFrame) {
+MartinSimulator::MartinSimulator(const ExtDataFrame<DATA_TYPE> &extDataFrame, int workerNum) {
     extDataFrame_ = extDataFrame;
+    workerNum_ = workerNum;
+}
+
+vector<size_t> MartinSimulator::locateOpenArrayIndex(
+                const OriginDataFrame<DATA_TYPE> &openOriginDataFrame) const {
+    vector<size_t> result;
+    size_t extArrayIndex=0;
+    for (auto it=openOriginDataFrame.index_.cbegin(); it != openOriginDataFrame.index_.cend(); it++) {
+        while (true) {
+            if (extDataFrame_.index_[extArrayIndex] == *it) {
+                result.push_back(extArrayIndex);
+                break;
+            }
+            extArrayIndex++;
+        }
+    }
+    return result;
 }
 
 bool MartinSimulator::couldSkipWindow(const Operation op,
@@ -51,37 +70,53 @@ bool MartinSimulator::couldSkipWindow(const Operation op,
     return false;
 }
 
-MartinDataFrame<DATA_TYPE> MartinSimulator::martinSim(
+MartinDataFrame<DATA_TYPE> MartinSimulator::run(
+        const OriginDataFrame<DATA_TYPE> &openOriginDataFrame,
+        const Operation &op,
+        const std::vector<DATA_TYPE> &martinPositionIntervals,
+        const std::vector<DATA_TYPE> &martinStopProfitTargets,
+        const DATA_TYPE &martinStopLossTarget) const {
+    return run(locateOpenArrayIndex(openOriginDataFrame),
+        op,
+        martinPositionIntervals,
+        martinStopProfitTargets,
+        martinStopLossTarget
+    );
+}
+
+MartinDataFrame<DATA_TYPE> MartinSimulator::run(
         const vector<std::size_t> &openArrayIndexList,
         const Operation &op,
         const std::vector<DATA_TYPE> &martinPositionIntervals,
         const std::vector<DATA_TYPE> &martinStopProfitTargets,
-        const DATA_TYPE &martinStopLossTarget) {
+        const DATA_TYPE &martinStopLossTarget) const {
 
     MartinDataFrame<DATA_TYPE> martinDataFrame(
         martinPositionIntervals, 
         martinStopProfitTargets,
         martinStopLossTarget);
     
+    thread_pool threadPool(workerNum_);
     vector<MartinResult> martinResultList;
     vector<int> a;
     martinResultList.resize(openArrayIndexList.size());
     for (size_t i=0; i <=  openArrayIndexList.size(); i++) {
         auto openArrayIndex = openArrayIndexList[i];
         threadPool.push_task([this, &martinResultList, &martinDataFrame, &op, openArrayIndex, i]
-            { martinResultList[i] = this->martinSim(openArrayIndex, op, 
+            { martinResultList[i] = this->run(openArrayIndex, op, 
                                       martinDataFrame.addPositionIntervals_, 
                                       martinDataFrame.stopProfitTargets_, 
                                       martinDataFrame.stopLossTarget_);});
-        // auto martinResult = martinSim(openArrayIndex, op, 
-        //                               martinDataFrame.addPositionIntervals_, 
-        //                               martinDataFrame.stopProfitTargets_, 
-        //                               martinDataFrame.stopLossTarget_);
-        // martinDataFrame.appendMartinResult(martinResult, extDataFrame_[openArrayIndex]);
     }
+
+    for (size_t i=0; i <= openArrayIndexList.size(); i++) {
+        auto openArrayIndex = openArrayIndexList[i];
+        martinDataFrame.appendMartinResult(martinResultList[i], extDataFrame_[openArrayIndex]);
+    }
+    return martinDataFrame;
 }
 
-MartinResult MartinSimulator::martinSim(
+MartinResult MartinSimulator::run(
         const size_t openArrayIndex,
         const Operation &op,
         const vector<DATA_TYPE> &martinPositionIntervals,
@@ -97,7 +132,6 @@ MartinResult MartinSimulator::martinSim(
     auto openAskPrice = extDataFrame_.ask_[openArrayIndex];
     DATA_TYPE nextStopProfitPrice, nextAddPositionPrice, stopLossPrice;
     martinResult.addPositionsArrayIndex_.push_back(openArrayIndex);
-
 
     stopLossPrice = [&]() {
         if (op == Operation::BUY) return openAskPrice - martinStopLossTarget;

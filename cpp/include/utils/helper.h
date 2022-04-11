@@ -1,5 +1,5 @@
-#ifndef MIKU_TEMPLAR_UTILS_H_
-#define MIKU_TEMPLAR_UTILS_H_
+#ifndef MIKU_TEMPLAR_UTILS_HELPER_H_
+#define MIKU_TEMPLAR_UTILS_HELPER_H_
 
 #include <vector>
 #include <string>
@@ -12,7 +12,7 @@
 
 namespace MikuTemplar{
 
-std::vector<std::string> split(const std::string &input, const char spliter=',') {
+inline std::vector<std::string> split(const std::string &input, const char spliter=',') {
     std::vector<std::string> result;
     std::stringstream ss(input);
     while( ss.good() ){

@@ -1,9 +1,9 @@
-#ifndef MIKU_TEMPLAR_ORIGIN_DATA_FRAME_H_
-#define MIKU_TEMPLAR_ORIGIN_DATA_FRAME_H_
+#ifndef MIKU_TEMPLAR_CORE_ORIGIN_DATA_FRAME_H_
+#define MIKU_TEMPLAR_CORE_ORIGIN_DATA_FRAME_H_
 
 #include <vector>
 #include <string>
-#include "tick.h"
+#include "core/tick.h"
 
 namespace MikuTemplar{
 
