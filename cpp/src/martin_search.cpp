@@ -14,8 +14,8 @@ int main(int argc, char *argv[]){
     cxxopts::Options options("martin search", "Simulate martin process for each input open row.");
     options.add_options()
         ("input_ext", "input ext csv file", cxxopts::value<string>())
+        ("input_open","input open csv file. must included in input_ext", cxxopts::value<string>())
         ("input_search", "input search json file", cxxopts::value<string>())
-        ("output", "output martin result csv file path", cxxopts::value<string>())
         ("h,help", "Print usage")
     ;
 
@@ -25,8 +25,9 @@ int main(int argc, char *argv[]){
       exit(0);
     }
     cout << "[INFO]Loading data..." << endl;
-    auto operation = generateOperation(result["operation"].as<string>());
-    auto extDataFrame = loadExtCsv<DATA_TYPE>(result["input_ext"].as<string>());
+    auto martinParametersList = loadMartinParametersJson<DATA_TYPE>(result["input_search"].as<string>());
 
-    cout  << "[INFO]All done"<< endl;
+    auto extDataFrame = loadExtCsv<DATA_TYPE>(result["input_ext"].as<string>());
+    auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(result["input_open"].as<string>());
+        cout  << "[INFO]All done"<< endl;
 }

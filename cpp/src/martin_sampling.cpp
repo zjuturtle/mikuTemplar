@@ -12,7 +12,7 @@ using namespace MikuTemplar;
 using namespace std;
 
 int main(int argc, char *argv[]){
-    cxxopts::Options options("martin sampling", "Sample forex preprocessed tick raw data to generate tick data");
+    cxxopts::Options options("martin sampling", "Sample forex preprocessed tick raw data to generate tick data for each second");
     options.add_options()
         ("input", "input preprocessed tick csv file", cxxopts::value<string>())
         ("output", "output sample tick csv file", cxxopts::value<string>())
@@ -24,8 +24,9 @@ int main(int argc, char *argv[]){
         std::cout << options.help() << std::endl;
         exit(0);
     }
-
+    cout << "[INFO]Start loading..." << endl;
     auto inputDataFrame = loadOriginCsv<DATA_TYPE>(result["input"].as<string>());
+    cout << "[INFO]Start sampling..." << endl;
     OriginDataFrame<DATA_TYPE> outputDataFrame;
     int lastHour = -1;
     int lastMin = -1;

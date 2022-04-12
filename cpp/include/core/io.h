@@ -9,11 +9,36 @@
 #include "core/const.h"
 #include "core/tick.h"
 #include "utils/helper.h"
+#include "utils/rapidjson/document.h"
+#include "utils/rapidjson/istreamwrapper.h"
 #include "core/martin_dataframe.h"
 #include "core/ext_dataframe.h"
 #include "core/origin_dataframe.h"
+#include "core/martin_parameters.h"
 
 namespace MikuTemplar{
+
+template <class T>
+std::vector<MartinParameters<T>> loadMartinParametersJson(const std::string &jsonFile) {
+    std::vector<MartinParameters<T>> result;
+    std::ifstream ifs(jsonFile);
+    if (ifs.is_open()){
+        rapidjson::IStreamWrapper isw(ifs);
+        rapidjson::Document d;
+        d.ParseStream(isw);
+        for (auto& v : d["martin"].GetArray()) {
+            MartinParameters<T> tmp;
+            tmp.op_ = generateOperation(v["op"].GetString());
+            for (auto &data : v["positionIntervals"].GetArray()) tmp.positionIntervals_.push_back(data.GetInt());
+            for (auto &data : v["stopProfits"].GetArray()) tmp.stopProfits_.push_back(data.GetInt());
+            tmp.stopLoss_ = v["stopLoss"].GetInt();
+            result.push_back(tmp);
+        }
+    } else {
+        std::cout << "[ERROR]Cannot open file "<< jsonFile << std::endl; 
+    }
+    return result;
+}
 
 template <class T>
 void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFrame) {
