@@ -10,7 +10,7 @@ namespace MikuTemplar {
 
 template <class T>
 class MartinSimulator {
-   public:
+public:
     MartinSimulator(const std::string &extCsvFile, int workerNum = 8) {
         extDataFrame_ = loadExtCsv<DATA_TYPE>(extCsvFile);
         workerNum_ = workerNum;
@@ -39,6 +39,16 @@ class MartinSimulator {
             }
         }
         return result;
+    }
+
+    MartinDataFrame<T> run(
+        const OriginDataFrame<T> &openOriginDataFrame,
+        const MartinParameters<T> &martinParameters) const {
+        return run(openOriginDataFrame,
+                   martinParameters.op_,
+                   martinParameters.martinPositionIntervals,
+                   martinParameters.martinStopProfitTargets,
+                   martinParameters.stopLoss_);
     }
 
     MartinDataFrame<T> run(

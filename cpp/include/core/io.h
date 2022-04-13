@@ -1,32 +1,33 @@
 #ifndef MIKU_TEMPLAR_CORE_IO_H_
 #define MIKU_TEMPLAR_CORE_IO_H_
 
-#include <vector>
-#include <string>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
+
 #include "core/const.h"
+#include "core/ext_dataframe.h"
+#include "core/martin_dataframe.h"
+#include "core/martin_parameters.h"
+#include "core/origin_dataframe.h"
 #include "core/tick.h"
 #include "utils/helper.h"
 #include "utils/rapidjson/document.h"
 #include "utils/rapidjson/istreamwrapper.h"
-#include "core/martin_dataframe.h"
-#include "core/ext_dataframe.h"
-#include "core/origin_dataframe.h"
-#include "core/martin_parameters.h"
 
-namespace MikuTemplar{
+namespace MikuTemplar {
 
 template <class T>
 std::vector<MartinParameters<T>> loadMartinParametersJson(const std::string &jsonFile) {
     std::vector<MartinParameters<T>> result;
     std::ifstream ifs(jsonFile);
-    if (ifs.is_open()){
+    if (ifs.is_open()) {
         rapidjson::IStreamWrapper isw(ifs);
         rapidjson::Document d;
         d.ParseStream(isw);
-        for (auto& v : d["martin"].GetArray()) {
+        for (auto &v : d["martin"].GetArray()) {
             MartinParameters<T> tmp;
             tmp.op_ = generateOperation(v["op"].GetString());
             for (auto &data : v["positionIntervals"].GetArray()) tmp.positionIntervals_.push_back(data.GetInt());
@@ -35,7 +36,7 @@ std::vector<MartinParameters<T>> loadMartinParametersJson(const std::string &jso
             result.push_back(tmp);
         }
     } else {
-        std::cout << "[ERROR]Cannot open file "<< jsonFile << std::endl; 
+        std::cout << "[ERROR]Cannot open file " << jsonFile << std::endl;
     }
     return result;
 }
@@ -54,17 +55,17 @@ void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFra
          << Key::FUTURE_ASK_MAX_LARGE_WINDOW << extDataFrame.largeWindow_ << ","
          << Key::FUTURE_ASK_MIN_LARGE_WINDOW << extDataFrame.largeWindow_ << std::endl;
 
-    for (std::size_t index=0; index < extDataFrame.size();index++) {
-        file << extDataFrame.index_[index]<<","
-             << extDataFrame.datetime_[index]<<","
-             << extDataFrame.bid_[index] << "," 
+    for (std::size_t index = 0; index < extDataFrame.size(); index++) {
+        file << extDataFrame.index_[index] << ","
+             << extDataFrame.datetime_[index] << ","
+             << extDataFrame.bid_[index] << ","
              << extDataFrame.ask_[index] << ","
-             << extDataFrame.futureBidMaxSmallWindow_[index] << "," 
+             << extDataFrame.futureBidMaxSmallWindow_[index] << ","
              << extDataFrame.futureBidMinSmallWindow_[index] << ","
              << extDataFrame.futureBidMaxLargeWindow_[index] << ","
              << extDataFrame.futureBidMinLargeWindow_[index] << ","
 
-             << extDataFrame.futureAskMaxSmallWindow_[index] << "," 
+             << extDataFrame.futureAskMaxSmallWindow_[index] << ","
              << extDataFrame.futureAskMinSmallWindow_[index] << ","
              << extDataFrame.futureAskMaxLargeWindow_[index] << ","
              << extDataFrame.futureAskMinLargeWindow_[index] << std::endl;
@@ -72,17 +73,17 @@ void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFra
     file.close();
 }
 
-template <class T> 
-ExtDataFrame<T> loadExtCsv(const std::string& inputFile){
+template <class T>
+ExtDataFrame<T> loadExtCsv(const std::string &inputFile) {
     ExtDataFrame<T> extDataFrame;
     std::fstream file(inputFile, std::ios::in);
-	if(file.is_open()){
+    if (file.is_open()) {
         std::string line;
         getline(file, line);
         extDataFrame.smallWindow_ = atoi(split(line)[4].substr(Key::FUTURE_BID_MAX_SMALL_WINDOW.size(), std::string::npos).c_str());
         extDataFrame.largeWindow_ = atoi(split(line)[6].substr(Key::FUTURE_BID_MAX_LARGE_WINDOW.size(), std::string::npos).c_str());
-		while(getline(file, line)){
-            auto tmp=split(line);
+        while (getline(file, line)) {
+            auto tmp = split(line);
             extDataFrame.index_.push_back(atoi(tmp[0].c_str()));
             extDataFrame.datetime_.push_back(trimCopy(tmp[1]));
             extDataFrame.bid_.push_back(atoi(tmp[2].c_str()));
@@ -97,26 +98,26 @@ ExtDataFrame<T> loadExtCsv(const std::string& inputFile){
             extDataFrame.futureAskMinSmallWindow_.push_back(atoi(tmp[9].c_str()));
             extDataFrame.futureAskMaxLargeWindow_.push_back(atoi(tmp[10].c_str()));
             extDataFrame.futureAskMinLargeWindow_.push_back(atoi(tmp[11].c_str()));
-		}
-	}
+        }
+    }
     return extDataFrame;
 }
 
 template <class T>
-OriginDataFrame<T> loadOriginCsv(const std::string& inputFile) {
+OriginDataFrame<T> loadOriginCsv(const std::string &inputFile) {
     OriginDataFrame<T> originDataFrame;
     std::fstream file(inputFile, std::ios::in);
-	if(file.is_open()){
+    if (file.is_open()) {
         std::string line;
         getline(file, line);
-		while(getline(file, line)){
-            auto tmp=split(line);
+        while (getline(file, line)) {
+            auto tmp = split(line);
             originDataFrame.index_.push_back(atoi(tmp[0].c_str()));
             originDataFrame.datetime_.push_back(trimCopy(tmp[1]));
             originDataFrame.bid_.push_back(atoi(tmp[2].c_str()));
             originDataFrame.ask_.push_back(atoi(tmp[3].c_str()));
-		}
-	}
+        }
+    }
     return originDataFrame;
 }
 
@@ -126,10 +127,10 @@ void saveOriginCsv(const std::string &outputFile, const OriginDataFrame<T> &orig
     file << Key::INDEX << "," << Key::DATETIME << ","
          << Key::BID << "," << Key::ASK << std::endl;
 
-    for (std::size_t index=0; index < originDataFrame.size();index++) {
-        file << originDataFrame.index_[index]<<","
-             << originDataFrame.datetime_[index]<<","
-             << originDataFrame.bid_[index] << "," 
+    for (std::size_t index = 0; index < originDataFrame.size(); index++) {
+        file << originDataFrame.index_[index] << ","
+             << originDataFrame.datetime_[index] << ","
+             << originDataFrame.bid_[index] << ","
              << originDataFrame.ask_[index] << std::endl;
     }
     file.close();
@@ -140,28 +141,28 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
     std::fstream file(outputFile, std::ios::out);
     file << Key::INDEX << "," << Key::DATETIME << ","
          << Key::BID << "," << Key::ASK << ","
-         << Key::OPERATION << "," <<Key::CLOSE_TYPE << "," << Key::CLOSE_ARRAY_INDEX << ","
+         << Key::OPERATION << "," << Key::CLOSE_TYPE << "," << Key::CLOSE_ARRAY_INDEX << ","
          << Key::ADD_POSITION_COUNT;
-    
-    for (int i=0;i<martinDataFrame.addPositionIntervals_.size();i++) {
-        file << ","<< Key::ADD_POSITION_ARRAY_INDEX << i;
+
+    for (int i = 0; i < martinDataFrame.addPositionIntervals_.size(); i++) {
+        file << "," << Key::ADD_POSITION_ARRAY_INDEX << i;
     }
     file << std::endl;
 
-    for (std::size_t i=0; i < martinDataFrame.size();i++) {
-        file << martinDataFrame.index_[i]<<","
-             << martinDataFrame.datetime_[i]<<","
-             << martinDataFrame.bid_[i] << "," 
+    for (std::size_t i = 0; i < martinDataFrame.size(); i++) {
+        file << martinDataFrame.index_[i] << ","
+             << martinDataFrame.datetime_[i] << ","
+             << martinDataFrame.bid_[i] << ","
              << martinDataFrame.ask_[i] << ","
              << toString(martinDataFrame.operation_[i]) << ","
              << toString(martinDataFrame.closeType_[i]) << ","
              << martinDataFrame.closeArrayIndex_[i] << ","
              << martinDataFrame.addPositionsArrayIndex_[i].size();
 
-        for (auto it=martinDataFrame.addPositionsArrayIndex_[i].cbegin();
-            it != martinDataFrame.addPositionsArrayIndex_[i].cend();
-            it++) {
-            file << ","<<(*it);
+        for (auto it = martinDataFrame.addPositionsArrayIndex_[i].cbegin();
+             it != martinDataFrame.addPositionsArrayIndex_[i].cend();
+             it++) {
+            file << "," << (*it);
         }
 
         file << std::endl;
@@ -169,5 +170,5 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
     file.close();
 }
 
-}
+}  // namespace MikuTemplar
 #endif

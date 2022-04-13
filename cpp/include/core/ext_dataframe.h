@@ -1,11 +1,12 @@
 #ifndef MIKU_TEMPLAR_CORE_EXT_DATA_FRAME_H_
 #define MIKU_TEMPLAR_CORE_EXT_DATA_FRAME_H_
 
-#include <vector>
 #include <string>
+#include <vector>
+
 #include "core/origin_dataframe.h"
 
-namespace MikuTemplar{
+namespace MikuTemplar {
 
 template <class T>
 struct ExtDataFrame : public OriginDataFrame<T> {
@@ -22,7 +23,6 @@ struct ExtDataFrame : public OriginDataFrame<T> {
     std::vector<T> futureAskMaxLargeWindow_;
     std::vector<T> futureAskMinLargeWindow_;
 };
-}
-
+}  // namespace MikuTemplar
 
 #endif
