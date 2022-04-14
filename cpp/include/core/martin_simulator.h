@@ -238,7 +238,7 @@ public:
         }
     }
 
-   private:
+private:
     ExtDataFrame<T> extDataFrame_;
     int workerNum_;
     bool couldSkipWindow(const Operation op,

@@ -1,6 +1,7 @@
 project(mikuTemplar)
 cmake_minimum_required(VERSION 3.22)
-set(CMAKE_CXX_STANDARD 17)
+find_package(ortools CONFIG REQUIRED)
+set(CMAKE_CXX_STANDARD 20)
 
 include_directories("include")
 add_executable(martin_ext  "src/martin_ext.cpp")
