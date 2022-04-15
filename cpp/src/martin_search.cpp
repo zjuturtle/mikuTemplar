@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
 
     for (auto &martinParameters : martinParametersList) {
         auto martinDataFrame = mSim.run(openOriginDataFrame, martinParameters);
+        auto martinInfo = martinDataFrame.count();
     }
     cout << "[INFO]All done" << endl;
 }
