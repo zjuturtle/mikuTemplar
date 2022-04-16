@@ -52,6 +52,8 @@ struct MartinDataFrame : public OriginDataFrame<T> {
     std::vector<std::size_t> closeArrayIndex_;
     std::vector<ArrayIndexList> addPositionsArrayIndex_;
 
+    MartinDataFrame() {}
+
     MartinDataFrame(const MartinParameters<T> &mP) : addPositionIntervals_(mP.positionIntervals_),
                                                      stopProfitTargets_(mP.stopProfits_),
                                                      stopLossTarget_(mP.stopLoss_) {}

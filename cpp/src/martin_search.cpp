@@ -13,7 +13,12 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     cxxopts::Options options("martin search", "Simulate martin process for each input open row.");
-    options.add_options()("input_ext", "input ext csv file", cxxopts::value<string>())("input_open", "input open csv file. must included in input_ext", cxxopts::value<string>())("input_search", "input search json file", cxxopts::value<string>())("h,help", "Print usage");
+    options.add_options()
+      ("input_ext", "input ext csv file", cxxopts::value<string>())
+      ("input_open", "input open csv file. must included in input_ext", cxxopts::value<string>())
+      ("input_search", "input search json file", cxxopts::value<string>())
+      ("output_best", "output best martin dataframe csv file", cxxopts::value<string>())
+      ("h,help", "Print usage");
 
     auto result = options.parse(argc, argv);
     if (result.count("help")) {
@@ -28,9 +33,12 @@ int main(int argc, char *argv[]) {
 
     MartinSimulator mSim(extDataFrame);
 
+    MartinDataFrame<DATA_TYPE> bestMartinDataFrame;
     for (auto &martinParameters : martinParametersList) {
         auto martinDataFrame = mSim.run(openOriginDataFrame, martinParameters);
         auto martinInfo = martinDataFrame.count();
     }
+    saveMartinCsv(result["output_best"].as<string>(), bestMartinDataFrame);
+            
     cout << "[INFO]All done" << endl;
 }
