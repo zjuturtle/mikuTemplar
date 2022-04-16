@@ -3,6 +3,7 @@
 #include "core/ext_dataframe.h"
 #include "core/io.h"
 #include "core/martin_dataframe.h"
+#include "core/martin_parameters.h"
 #include "core/origin_dataframe.h"
 #include "utils/thread_pool.hpp"
 
@@ -44,36 +45,14 @@ public:
     MartinDataFrame<T> run(
         const OriginDataFrame<T> &openOriginDataFrame,
         const MartinParameters<T> &martinParameters) const {
-        return run(openOriginDataFrame,
-                   martinParameters.op_,
-                   martinParameters.martinPositionIntervals,
-                   martinParameters.martinStopProfitTargets,
-                   martinParameters.stopLoss_);
-    }
-
-    MartinDataFrame<T> run(
-        const OriginDataFrame<T> &openOriginDataFrame,
-        const Operation &op,
-        const std::vector<T> &martinPositionIntervals,
-        const std::vector<T> &martinStopProfitTargets,
-        const T &martinStopLossTarget) const {
         return run(locateOpenArrayIndex(openOriginDataFrame),
-                   op,
-                   martinPositionIntervals,
-                   martinStopProfitTargets,
-                   martinStopLossTarget);
+                   martinParameters);
     }
 
     MartinDataFrame<T> run(
         const std::vector<std::size_t> &openArrayIndexList,
-        const Operation &op,
-        const std::vector<T> &martinPositionIntervals,
-        const std::vector<T> &martinStopProfitTargets,
-        const T &martinStopLossTarget) const {
-        MartinDataFrame<DATA_TYPE> martinDataFrame(
-            martinPositionIntervals,
-            martinStopProfitTargets,
-            martinStopLossTarget);
+        const MartinParameters<T> &martinParameters) const {
+        MartinDataFrame<DATA_TYPE> martinDataFrame(martinParameters);
 
         thread_pool threadPool(workerNum_);
         std::vector<MartinResult> martinResultList;
@@ -81,10 +60,10 @@ public:
         martinResultList.resize(openArrayIndexList.size());
         for (size_t i = 0; i <= openArrayIndexList.size(); i++) {
             auto openArrayIndex = openArrayIndexList[i];
-            threadPool.push_task([this, &martinResultList, &martinDataFrame, &op, openArrayIndex, i] { martinResultList[i] = this->run(openArrayIndex, op,
-                                                                                                                                       martinDataFrame.addPositionIntervals_,
-                                                                                                                                       martinDataFrame.stopProfitTargets_,
-                                                                                                                                       martinDataFrame.stopLossTarget_); });
+            threadPool.push_task([this, &martinResultList, &martinDataFrame, openArrayIndex, i] { martinResultList[i] = this->run(openArrayIndex, martinDataFrame.martinParameters_.op_,
+                                                                                                                                  martinDataFrame.martinParameters_.positionIntervals_,
+                                                                                                                                  martinDataFrame.martinParameters_.stopProfits_,
+                                                                                                                                  martinDataFrame.martinParameters_.stopLoss_); });
         }
 
         for (size_t i = 0; i <= openArrayIndexList.size(); i++) {
@@ -113,7 +92,6 @@ public:
         // ArrayIndex: array index of ExtDataFrame. NOT extDataFrame.index
         MartinResult martinResult;
         martinResult.closeType_ = CloseType::NOT_CLOSE;
-        martinResult.op_ = op;
         auto currentMartinIndex = 0;
         auto openBidPrice = extDataFrame_.bid_[openArrayIndex];
         auto openAskPrice = extDataFrame_.ask_[openArrayIndex];

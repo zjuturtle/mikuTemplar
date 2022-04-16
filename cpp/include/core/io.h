@@ -144,7 +144,7 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
          << Key::OPERATION << "," << Key::CLOSE_TYPE << "," << Key::CLOSE_ARRAY_INDEX << ","
          << Key::ADD_POSITION_COUNT;
 
-    for (int i = 0; i < martinDataFrame.addPositionIntervals_.size(); i++) {
+    for (int i = 0; i < martinDataFrame.martinParameters_.positionIntervals_.size(); i++) {
         file << "," << Key::ADD_POSITION_ARRAY_INDEX << i;
     }
     file << std::endl;
@@ -154,7 +154,7 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
              << martinDataFrame.datetime_[i] << ","
              << martinDataFrame.bid_[i] << ","
              << martinDataFrame.ask_[i] << ","
-             << toString(martinDataFrame.operation_[i]) << ","
+             << toString(martinDataFrame.martinParameters_.op_) << ","
              << toString(martinDataFrame.closeType_[i]) << ","
              << martinDataFrame.closeArrayIndex_[i] << ","
              << martinDataFrame.addPositionsArrayIndex_[i].size();

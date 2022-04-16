@@ -1,6 +1,6 @@
 project(mikuTemplar)
 cmake_minimum_required(VERSION 3.22)
-find_package(ortools CONFIG REQUIRED)
+#find_package(ortools CONFIG REQUIRED)
 set(CMAKE_CXX_STANDARD 20)
 
 include_directories("include")

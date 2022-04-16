@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <numeric>
 
 #include "core/martin_parameters.h"
 #include "core/martin_statistics.h"
@@ -34,38 +35,23 @@ inline std::string toString(const CloseType &closeType) {
 typedef std::vector<std::size_t> ArrayIndexList;
 
 struct MartinResult {
-    Operation op_;
     CloseType closeType_;
     std::size_t closeArrayIndex_;
     ArrayIndexList addPositionsArrayIndex_;
 };
 template <class T>
 struct MartinDataFrame : public OriginDataFrame<T> {
-    std::vector<T> addPositionIntervals_;
-    std::vector<T> stopProfitTargets_;
-    T stopLossTarget_;
-    Operation operation_;
+    MartinParameters<T> martinParameters_;
 
     // Following variables have exact the same size of size()
-    std::vector<Operation> operation_;
     std::vector<CloseType> closeType_;
     std::vector<std::size_t> closeArrayIndex_;
     std::vector<ArrayIndexList> addPositionsArrayIndex_;
 
     MartinDataFrame() {}
-
-    MartinDataFrame(const MartinParameters<T> &mP) : addPositionIntervals_(mP.positionIntervals_),
-                                                     stopProfitTargets_(mP.stopProfits_),
-                                                     stopLossTarget_(mP.stopLoss_) {}
-
-    MartinDataFrame(const std::vector<T> &addPositionIntervals,
-                    const std::vector<T> &stopProfitTargets,
-                    const T stopLossTarget) : addPositionIntervals_(addPositionIntervals),
-                                              stopProfitTargets_(stopProfitTargets),
-                                              stopLossTarget_(stopLossTarget) {}
+    MartinDataFrame(const MartinParameters<T> &mP) : martinParameters_(mP) {}
 
     void appendMartinResult(const MartinResult &martinResult, const Tick<T> &tick) {
-        operation_.push_back(martinResult.op_);
         closeType_.push_back(martinResult.closeType_);
         closeArrayIndex_.push_back(martinResult.closeArrayIndex_);
         addPositionsArrayIndex_.push_back(martinResult.addPositionsArrayIndex_);
@@ -74,7 +60,8 @@ struct MartinDataFrame : public OriginDataFrame<T> {
 
     MartinStatistics count() {
         MartinStatistics res;
-        res.stopProfitsCount_.resize(stopProfitTargets_.size(), 0);
+        res.stopProfitsCount_.resize(martinParameters_.stopProfits_.size(), 0);
+        res.allCount_ = closeType_.size();
         for (std::size_t i = 0; i < closeType_.size(); i++) {
             if (closeType_[i] == CloseType::STOP_EARLY) {
                 res.earlyStopCount_++;
@@ -89,6 +76,8 @@ struct MartinDataFrame : public OriginDataFrame<T> {
                 continue;
             }
         }
+
+        res.stopLossPossibility_ = ((double)res.stopLossCount_) / ((double)res.allCount_);
         return res;
     }
 };
