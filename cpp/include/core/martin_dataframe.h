@@ -6,7 +6,8 @@
 #include <numeric>
 
 #include "core/martin_parameters.h"
-#include "core/martin_statistics.h"
+#include "core/martin_info.h"
+#include "core/martin_optimizer.h"
 #include "core/operation.h"
 #include "core/origin_dataframe.h"
 
@@ -41,7 +42,7 @@ struct MartinResult {
 };
 template <class T>
 struct MartinDataFrame : public OriginDataFrame<T> {
-    MartinParameters<T> martinParameters_;
+    MartinParameters martinParameters_;
 
     // Following variables have exact the same size of size()
     std::vector<CloseType> closeType_;
@@ -49,7 +50,7 @@ struct MartinDataFrame : public OriginDataFrame<T> {
     std::vector<ArrayIndexList> addPositionsArrayIndex_;
 
     MartinDataFrame() {}
-    MartinDataFrame(const MartinParameters<T> &mP) : martinParameters_(mP) {}
+    MartinDataFrame(const MartinParameters &mP) : martinParameters_(mP) {}
 
     void appendMartinResult(const MartinResult &martinResult, const Tick<T> &tick) {
         closeType_.push_back(martinResult.closeType_);
@@ -58,27 +59,30 @@ struct MartinDataFrame : public OriginDataFrame<T> {
         this->append(tick);
     }
 
-    MartinStatistics count() {
-        MartinStatistics res;
-        res.stopProfitsCount_.resize(martinParameters_.stopProfits_.size(), 0);
-        res.allCount_ = closeType_.size();
+    MartinInfo count(const MartinOptimizer &mo) {
+        MartinCounts mc;
+        mc.stopProfitsCount_.resize(martinParameters_.stopProfits_.size(), 0);
+        mc.allCount_ = closeType_.size();
         for (std::size_t i = 0; i < closeType_.size(); i++) {
             if (closeType_[i] == CloseType::STOP_EARLY) {
-                res.earlyStopCount_++;
+                mc.earlyStopCount_++;
                 continue;
             }
             if (closeType_[i] == CloseType::STOP_LOSS) {
-                res.stopLossCount_++;
+                mc.stopLossCount_++;
                 continue;
             }
             if (closeType_[i] == CloseType::STOP_PROFIT) {
-                res.stopProfitsCount_[addPositionsArrayIndex_[i].size() - 1]++;
+                mc.stopProfitsCount_[addPositionsArrayIndex_[i].size() - 1]++;
                 continue;
             }
         }
 
-        res.stopLossPossibility_ = ((double)res.stopLossCount_) / ((double)res.allCount_);
-        return res;
+        MartinInfo res;
+        res.c_ = mc;
+        res.p_ = this->martinParameters_;
+        mwmwo
+        return mi;
     }
 };
 }  // namespace MikuTemplar

@@ -19,16 +19,16 @@
 
 namespace MikuTemplar {
 
-template <class T>
-std::vector<MartinParameters<T>> loadMartinParametersJson(const std::string &jsonFile) {
-    std::vector<MartinParameters<T>> result;
+
+inline std::vector<MartinParameters> loadMartinParametersJson(const std::string &jsonFile) {
+    std::vector<MartinParameters> result;
     std::ifstream ifs(jsonFile);
     if (ifs.is_open()) {
         rapidjson::IStreamWrapper isw(ifs);
         rapidjson::Document d;
         d.ParseStream(isw);
         for (auto &v : d["martin"].GetArray()) {
-            MartinParameters<T> tmp;
+            MartinParameters tmp;
             tmp.op_ = generateOperation(v["op"].GetString());
             for (auto &data : v["positionIntervals"].GetArray()) tmp.positionIntervals_.push_back(data.GetInt());
             for (auto &data : v["stopProfits"].GetArray()) tmp.stopProfits_.push_back(data.GetInt());

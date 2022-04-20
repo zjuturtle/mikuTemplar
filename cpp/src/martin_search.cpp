@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
     cout << "[INFO]Loading data..." << endl;
-    auto martinParametersList = loadMartinParametersJson<DATA_TYPE>(result["input_search"].as<string>());
+    auto martinParametersList = loadMartinParametersJson(result["input_search"].as<string>());
 
     auto extDataFrame = loadExtCsv<DATA_TYPE>(result["input_ext"].as<string>());
     auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(result["input_open"].as<string>());

@@ -44,14 +44,14 @@ public:
 
     MartinDataFrame<T> run(
         const OriginDataFrame<T> &openOriginDataFrame,
-        const MartinParameters<T> &martinParameters) const {
+        const MartinParameters &martinParameters) const {
         return run(locateOpenArrayIndex(openOriginDataFrame),
                    martinParameters);
     }
 
     MartinDataFrame<T> run(
         const std::vector<std::size_t> &openArrayIndexList,
-        const MartinParameters<T> &martinParameters) const {
+        const MartinParameters &martinParameters) const {
         MartinDataFrame<DATA_TYPE> martinDataFrame(martinParameters);
 
         thread_pool threadPool(workerNum_);
@@ -86,9 +86,9 @@ public:
     MartinResult run(
         const std::size_t openArrayIndex,
         const Operation &op,
-        const std::vector<T> &martinPositionIntervals,
-        const std::vector<T> &martinStopProfitTargets,
-        const T &martinStopLossTarget) const {
+        const std::vector<int> &martinPositionIntervals,
+        const std::vector<int> &martinStopProfitTargets,
+        const int &martinStopLossTarget) const {
         // ArrayIndex: array index of ExtDataFrame. NOT extDataFrame.index
         MartinResult martinResult;
         martinResult.closeType_ = CloseType::NOT_CLOSE;

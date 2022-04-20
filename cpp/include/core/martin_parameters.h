@@ -6,11 +6,11 @@
 #include "core/operation.h"
 
 namespace MikuTemplar {
-template <class T>
+
 struct MartinParameters {
-    std::vector<T> positionIntervals_;
-    std::vector<T> stopProfits_;
-    T stopLoss_;
+    std::vector<int> positionIntervals_;
+    std::vector<int> stopProfits_;
+    int stopLoss_;
     Operation op_;
 };
 }  // namespace MikuTemplar
