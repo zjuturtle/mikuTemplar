@@ -3,7 +3,24 @@ cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_CXX_STANDARD 20)
 
-# TODO: better OR tools intergration? Check https://github.com/or-tools/cmake_or-tools
+if(POLICY CMP0022)
+	cmake_policy(SET CMP0022 NEW)
+endif()
+
+# option() honors normal variables.
+if(POLICY CMP0077)
+	cmake_policy(SET CMP0077 NEW)
+endif()
+
+# Set default build type to Release if empty.
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+	"Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel.")
+
+project(CMakeORTools VERSION 1.0 LANGUAGES CXX)
+
+include(CTest)
+include(GNUInstallDirs)
+
 if(UNIX)
   option(BUILD_SHARED_LIBS "Build shared libraries(.so)." ON)
 else()
@@ -11,40 +28,16 @@ else()
  set(BUILD_SHARED_LIBS OFF)
 endif()
 
-if(BUILD_SHARED_LIBS)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
-
-################
-##  OR_TOOLS  ##
-################
-message(STATUS "Installing OR-Tools...")
-# Download and install or-tools at configure time
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/cmake/ortools.CMakeLists.txt
-	${CMAKE_BINARY_DIR}/ortools-download/CMakeLists.txt)
-# CMake configure
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-  RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/ortools-download)
-if(result)
-  message(FATAL_ERROR "CMake step for ortools failed: ${result}")
-endif()
-# CMake Build/Install
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-  RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/ortools-download)
-if(result)
-  message(FATAL_ERROR "Build step for ortools failed: ${result}")
-endif()
-message(STATUS "Installing OR-Tools...DONE")
-
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR}/deps)
-find_package(ortools REQUIRED)
-
+# Build Dependencies
+add_subdirectory(cmake)
 include_directories("include")
 add_executable(martin_ext  "src/martin_ext.cpp")
 add_executable(martin_sim  "src/martin_sim.cpp")
 add_executable(martin_search  "src/martin_search.cpp")
 add_executable(martin_sampling  "src/martin_sampling.cpp")
 add_executable(playground  "src/playground.cpp")
+
+target_link_libraries(martin_ext PRIVATE ortools::ortools)
+target_link_libraries(martin_sim PRIVATE ortools::ortools)
+target_link_libraries(martin_search PRIVATE ortools::ortools)
+target_link_libraries(martin_sampling PRIVATE ortools::ortools)

@@ -6,6 +6,7 @@
 #include "core/martin_dataframe.h"
 #include "core/martin_simulator.h"
 #include "core/origin_dataframe.h"
+#include "core/martin_optimizer.h"
 #include "utils/cxxopt.hpp"
 
 using namespace MikuTemplar;
@@ -32,11 +33,11 @@ int main(int argc, char *argv[]) {
     auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(result["input_open"].as<string>());
 
     MartinSimulator mSim(extDataFrame);
-
+    MartinOptimizer mo;
     MartinDataFrame<DATA_TYPE> bestMartinDataFrame;
     for (auto &martinParameters : martinParametersList) {
         auto martinDataFrame = mSim.run(openOriginDataFrame, martinParameters);
-        auto martinInfo = martinDataFrame.count();
+        auto martinInfo = martinDataFrame.count(mo);
     }
     saveMartinCsv(result["output_best"].as<string>(), bestMartinDataFrame);
             

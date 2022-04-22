@@ -77,12 +77,12 @@ struct MartinDataFrame : public OriginDataFrame<T> {
                 continue;
             }
         }
-
+        
         MartinInfo res;
         res.c_ = mc;
         res.p_ = this->martinParameters_;
-        mwmwo
-        return mi;
+        res.s_ = mo.optimize(res.p_, res.c_);
+        return res;
     }
 };
 }  // namespace MikuTemplar
