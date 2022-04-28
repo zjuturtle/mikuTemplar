@@ -14,6 +14,7 @@ struct MartinCounts {
 
 struct MartinStatistics {
     double stopLossPossibility_;
+    std::vector<double> stopProfitPossibility_;
     std::vector<double> expectedBestAddPositionWeight_;
     std::vector<double> expectedBestProfit_;
 };
