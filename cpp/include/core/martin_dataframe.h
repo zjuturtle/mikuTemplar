@@ -59,7 +59,7 @@ struct MartinDataFrame : public OriginDataFrame<T> {
         this->append(tick);
     }
 
-    MartinInfo count(const MartinOptimizer &mo) {
+    MartinInfo analyze(const MartinOptimizer &mo) {
         MartinCounts mc;
         mc.stopProfitsCount_.resize(martinParameters_.stopProfits_.size(), 0);
         mc.allCount_ = closeType_.size();

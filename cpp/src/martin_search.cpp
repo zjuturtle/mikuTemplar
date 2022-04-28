@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <limits>
 
 #include "core/ext_dataframe.h"
 #include "core/io.h"
@@ -35,9 +36,15 @@ int main(int argc, char *argv[]) {
     MartinSimulator mSim(extDataFrame);
     MartinOptimizer mo;
     MartinDataFrame<DATA_TYPE> bestMartinDataFrame;
+    double bestProfit = numeric_limits<double>::min();
     for (auto &martinParameters : martinParametersList) {
         auto martinDataFrame = mSim.run(openOriginDataFrame, martinParameters);
-        auto martinInfo = martinDataFrame.count(mo);
+        auto martinInfo = martinDataFrame.analyze(mo);
+
+        if (martinInfo.s_.expectedBestProfit_ > bestProfit) {
+            bestProfit = martinInfo.s_.expectedBestProfit_;
+            bestMartinDataFrame = martinDataFrame;
+        }
     }
     saveMartinCsv(result["output_best"].as<string>(), bestMartinDataFrame);
             
