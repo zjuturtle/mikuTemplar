@@ -36,8 +36,8 @@ inline std::string toString(const CloseType &closeType) {
 typedef std::vector<std::size_t> ArrayIndexList;
 
 struct MartinResult {
-    CloseType closeType_;
-    std::size_t closeArrayIndex_;
+    CloseType closeType_ = CloseType::NOT_CLOSE;
+    std::size_t closeArrayIndex_ = 0;
     ArrayIndexList addPositionsArrayIndex_;
 };
 template <class T>

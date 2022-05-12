@@ -18,8 +18,6 @@
 #include "utils/rapidjson/istreamwrapper.h"
 
 namespace MikuTemplar {
-
-
 inline std::vector<MartinParameters> loadMartinParametersJson(const std::string &jsonFile) {
     std::vector<MartinParameters> result;
     std::ifstream ifs(jsonFile);
@@ -33,6 +31,10 @@ inline std::vector<MartinParameters> loadMartinParametersJson(const std::string 
             for (auto &data : v["positionIntervals"].GetArray()) tmp.positionIntervals_.push_back(data.GetInt());
             for (auto &data : v["stopProfits"].GetArray()) tmp.stopProfits_.push_back(data.GetInt());
             tmp.stopLoss_ = v["stopLoss"].GetInt();
+            tmp.minFactor_ = v["minFactor"].GetDouble();
+            tmp.minLotUnit_ = v["minLotUnit"].GetDouble(); // 0.01 手
+            tmp.minProfit_ = v["minProfit"].GetDouble();   // 基础货币
+            tmp.totalLot_ = v["totalLot"].GetDouble();
             result.push_back(tmp);
         }
     } else {

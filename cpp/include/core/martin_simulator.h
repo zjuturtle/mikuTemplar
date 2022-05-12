@@ -65,6 +65,7 @@ public:
                                                                                                                                   martinDataFrame.martinParameters_.stopProfits_,
                                                                                                                                   martinDataFrame.martinParameters_.stopLoss_); });
         }
+        threadPool.wait_for_tasks();
 
         for (size_t i = 0; i <= openArrayIndexList.size(); i++) {
             auto openArrayIndex = openArrayIndexList[i];

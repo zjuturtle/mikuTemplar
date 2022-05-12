@@ -41,12 +41,11 @@ int main(int argc, char *argv[]) {
         auto martinDataFrame = mSim.run(openOriginDataFrame, martinParameters);
         auto martinInfo = martinDataFrame.analyze(mo);
 
-        if (martinInfo.s_.expectedBestProfit_ > bestProfit) {
-            bestProfit = martinInfo.s_.expectedBestProfit_;
+        if (martinInfo.s_.bestProfit_ > bestProfit) {
+            bestProfit = martinInfo.s_.bestProfit_;
             bestMartinDataFrame = martinDataFrame;
         }
     }
-    saveMartinCsv(result["output_best"].as<string>(), bestMartinDataFrame);
-            
+    saveMartinCsv(result["output_best"].as<string>(), bestMartinDataFrame);  
     cout << "[INFO]All done" << endl;
 }

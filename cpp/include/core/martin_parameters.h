@@ -10,6 +10,10 @@ namespace MikuTemplar {
 struct MartinParameters {
     std::vector<int> positionIntervals_;
     std::vector<int> stopProfits_;
+    double minLotUnit_;
+    double totalLot_;
+    double minFactor_;
+    double minProfit_;
     int stopLoss_;
     Operation op_;
 };
