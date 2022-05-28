@@ -4,13 +4,14 @@
 
 namespace MikuTemplar{
 enum Operation{
-    BUY, SELL
+    UNKNOWN, BUY, SELL
 };
 
 inline std::string toString(const Operation &op) {
     switch (op){
         case Operation::BUY:  return "BUY";
-        case Operation::SELL: return "SELL"; 
+        case Operation::SELL: return "SELL";
+        case Operation::UNKNOWN: return "UNKNOWN";
     }
 }
 
@@ -22,7 +23,7 @@ inline Operation generateOperation(const std::string &input) {
         return Operation::SELL;
     }
     std::cout << "ERROR! invalid input for operation!";
-    return Operation::BUY;
+    return Operation::UNKNOWN;
 }
 }
 

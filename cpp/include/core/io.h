@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "core/const.h"
+#include "core/martin_info.h"
 #include "core/ext_dataframe.h"
 #include "core/martin_dataframe.h"
 #include "core/martin_parameters.h"
@@ -16,6 +17,8 @@
 #include "utils/helper.h"
 #include "utils/rapidjson/document.h"
 #include "utils/rapidjson/istreamwrapper.h"
+#include "utils/rapidjson/ostreamwrapper.h"
+#include "utils/rapidjson/writer.h"
 
 namespace MikuTemplar {
 inline std::vector<MartinParameters> loadMartinParametersJson(const std::string &jsonFile) {
@@ -35,12 +38,85 @@ inline std::vector<MartinParameters> loadMartinParametersJson(const std::string 
             tmp.minLotUnit_ = v["minLotUnit"].GetDouble(); // 0.01 手
             tmp.minProfit_ = v["minProfit"].GetDouble();   // 基础货币
             tmp.totalLot_ = v["totalLot"].GetDouble();
+            tmp.validCheck();
             result.push_back(tmp);
         }
     } else {
         std::cout << "[ERROR]Cannot open file " << jsonFile << std::endl;
     }
     return result;
+}
+
+template <class T>
+rapidjson::Value createJsonArray(rapidjson::Document::AllocatorType& allocator, const std::vector<T> &array) {
+    rapidjson::Value myArray(rapidjson::kArrayType);
+    for (auto it : array) {
+        myArray.PushBack(rapidjson::Value().SetDouble((double)it), allocator);
+    }
+    return myArray;
+}
+
+inline rapidjson::Value createJsonString(rapidjson::Document::AllocatorType& allocator, const std::string &str){
+    rapidjson::Value res;
+    res.SetString(str.c_str(), str.size(), allocator);
+    return res;
+}
+
+inline void saveMartinInfos(const std::string &outputFile, const std::vector<MartinInfo> &martinInfos) {
+    std::fstream file(outputFile, std::ios::out);
+    rapidjson::Document d;
+    d.SetObject();
+    rapidjson::Value myArray(rapidjson::kArrayType);
+    rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
+    
+
+    for (auto martinInfo : martinInfos) {
+        rapidjson::Value martinInfoObj;
+        martinInfoObj.SetObject();
+
+        // MartinParameters
+        rapidjson::Value martinParameters;
+        martinParameters.SetObject();
+        martinParameters.AddMember("op", createJsonString(allocator, toString(martinInfo.p_.op_)), allocator);
+        martinParameters.AddMember("positionIntervals", createJsonArray(allocator, martinInfo.p_.positionIntervals_), allocator);
+        martinParameters.AddMember("stopProfits", createJsonArray(allocator, martinInfo.p_.stopProfits_), allocator);
+        martinParameters.AddMember("minFactor", martinInfo.p_.minFactor_, allocator);
+        martinParameters.AddMember("minLotUnit", martinInfo.p_.minLotUnit_, allocator);
+        martinParameters.AddMember("totalLot", martinInfo.p_.totalLot_, allocator);
+        martinParameters.AddMember("stopLoss", martinInfo.p_.stopLoss_, allocator);
+        martinParameters.AddMember("minProfit", martinInfo.p_.minProfit_, allocator);
+
+        //MartinCounts
+        rapidjson::Value martinCounts;
+        martinCounts.SetObject();
+        martinCounts.AddMember("allCount", (int)martinInfo.c_.allCount_, allocator);
+        martinCounts.AddMember("stopLossCount", (int)martinInfo.c_.stopLossCount_, allocator);
+        martinCounts.AddMember("earlyStopCount", (int)martinInfo.c_.earlyStopCount_, allocator);
+        martinCounts.AddMember("stopProfitsCount", createJsonArray(allocator, martinInfo.c_.stopProfitsCount_), allocator);
+
+        //MartinStatic
+        rapidjson::Value martinStatistics;
+        martinStatistics.SetObject();
+        martinStatistics.AddMember("stopLossPossibility", martinInfo.s_.stopLossPossibility_, allocator);
+        martinStatistics.AddMember("earlyStopPossibility", martinInfo.s_.earlyStopPossibility_, allocator);
+        martinStatistics.AddMember("stopProfitPossibility_", createJsonArray(allocator, martinInfo.s_.stopProfitPossibility_), allocator);
+        martinStatistics.AddMember("bestLots", createJsonArray(allocator, martinInfo.s_.bestLots_), allocator);
+        martinStatistics.AddMember("bestLotsWeight", createJsonArray(allocator, martinInfo.s_.bestLotsWeight_), allocator);
+        martinStatistics.AddMember("bestProfit", martinInfo.s_.bestProfit_, allocator);
+
+        martinInfoObj.AddMember("parametes", martinParameters, allocator);
+        martinInfoObj.AddMember("counts", martinCounts, allocator);
+        martinInfoObj.AddMember("statistics", martinStatistics, allocator);
+
+        myArray.PushBack(martinInfoObj, allocator);
+    }
+    d.AddMember("martinInfos", myArray, allocator);
+
+    std::ofstream ofs(outputFile);
+    rapidjson::OStreamWrapper osw(ofs);
+    
+    rapidjson::Writer<rapidjson::OStreamWrapper> writer(osw);
+    d.Accept(writer);
 }
 
 template <class T>

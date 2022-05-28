@@ -20,32 +20,35 @@ int main(int argc, char *argv[]) {
       ("input_open", "input open csv file. must included in input_ext", cxxopts::value<string>())
       ("input_search", "input search json file", cxxopts::value<string>())
       ("output_best", "output best martin dataframe csv file", cxxopts::value<string>())
+      ("output_martin_infos", "for each martin paramter the simulate result", cxxopts::value<string>())
       ("h,help", "Print usage");
 
-    auto result = options.parse(argc, argv);
-    if (result.count("help")) {
+    auto args = options.parse(argc, argv);
+    if (args.count("help")) {
         std::cout << options.help() << std::endl;
         exit(0);
     }
     cout << "[INFO]Loading data..." << endl;
-    auto martinParametersList = loadMartinParametersJson(result["input_search"].as<string>());
+    auto martinParametersList = loadMartinParametersJson(args["input_search"].as<string>());
 
-    auto extDataFrame = loadExtCsv<DATA_TYPE>(result["input_ext"].as<string>());
-    auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(result["input_open"].as<string>());
+    auto extDataFrame = loadExtCsv<DATA_TYPE>(args["input_ext"].as<string>());
+    auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(args["input_open"].as<string>());
 
     MartinSimulator mSim(extDataFrame);
     MartinOptimizer mo;
     MartinDataFrame<DATA_TYPE> bestMartinDataFrame;
     double bestProfit = numeric_limits<double>::min();
+    vector<MartinInfo> martinInfos;
     for (auto &martinParameters : martinParametersList) {
         auto martinDataFrame = mSim.run(openOriginDataFrame, martinParameters);
         auto martinInfo = martinDataFrame.analyze(mo);
-
-        if (martinInfo.s_.bestProfit_ > bestProfit) {
+        martinInfos.push_back(martinInfo);
+        if (!martinInfo.s_.bestLots_.empty() && martinInfo.s_.bestProfit_ > bestProfit) {
             bestProfit = martinInfo.s_.bestProfit_;
             bestMartinDataFrame = martinDataFrame;
         }
     }
-    saveMartinCsv(result["output_best"].as<string>(), bestMartinDataFrame);  
+    saveMartinInfos(args["output_martin_infos"].as<string>(), martinInfos);
+    saveMartinCsv(args["output_best"].as<string>(), bestMartinDataFrame);  
     cout << "[INFO]All done" << endl;
 }

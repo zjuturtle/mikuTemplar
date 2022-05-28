@@ -14,6 +14,7 @@ public:
     inline MartinStatistics optimize(const MartinParameters &mp, const MartinCounts &mc) const {
         MartinStatistics res;
         res.stopLossPossibility_ = ((double)mc.stopLossCount_) / ((double)(mc.allCount_ - mc.earlyStopCount_));
+        res.earlyStopPossibility_ = (double)mc.earlyStopCount_ / (double)mc.allCount_ ;
         for (int i=0;i<mc.stopProfitsCount_.size();i++) {
             res.stopProfitPossibility_.push_back(((double)mc.stopProfitsCount_[i]) / ((double)(mc.allCount_ - mc.earlyStopCount_)));
         }
@@ -43,6 +44,11 @@ public:
             }
         }
 
+        for (int i=0;i<lots.size();i++) {
+            operations_research::MPConstraint* c = solver->MakeRowConstraint(1, infinity);
+            c->SetCoefficient(lots[i], 1);
+        }
+
         // Constraint: lots_(n-1) <= lots_(n)/minFactor
         for (int i=1;i<lots.size();i++) {
             operations_research::MPConstraint* c = solver->MakeRowConstraint(0, infinity);
@@ -59,6 +65,7 @@ public:
                 profitCoef += (res.stopProfitPossibility_[j] * (mp.stopProfits_[j]-mp.positionIntervals_[j] + mp.positionIntervals_[i]));
             }
             lossCoef = res.stopLossPossibility_ * (mp.positionIntervals_[i] - mp.stopLoss_);
+            res.bestLotsWeight_.push_back(profitCoef + lossCoef);
             objective->SetCoefficient(lots[i], mp.minLotUnit_ * (profitCoef + lossCoef));
         }
 
@@ -69,10 +76,18 @@ public:
             std::cout << "[WARN]Optimizer does not have an optimal solution!" << std::endl;
         }
 
+        if (result_status == operations_research::MPSolver::INFEASIBLE) {
+            std::cout << "[ERROR]Optimizer is infeasible!" << std::endl;
+            res.bestLots_.clear();
+            res.bestProfit_ = 0;
+            return res;
+        }
+
         // Write to result
         for (auto lot : lots) {
             res.bestLots_.push_back(lot->solution_value() * mp.minLotUnit_);
         }
+
         res.bestProfit_ = objective->Value();
         return res;
     }

@@ -97,6 +97,7 @@ public:
         auto openBidPrice = extDataFrame_.bid_[openArrayIndex];
         auto openAskPrice = extDataFrame_.ask_[openArrayIndex];
         DATA_TYPE nextStopProfitPrice, nextAddPositionPrice, stopLossPrice;
+        bool stopLossFlag = false;
         martinResult.addPositionsArrayIndex_.push_back(openArrayIndex);
 
         stopLossPrice = [&]() {
@@ -109,14 +110,20 @@ public:
 
         auto updateMartin = [&]() {
             if (op == Operation::BUY) {
-                if (currentMartinIndex < martinPositionIntervals.size())
+                if (currentMartinIndex < martinPositionIntervals.size()-1) {
                     nextAddPositionPrice = openAskPrice - martinPositionIntervals[currentMartinIndex + 1];
+                } else {
+                    stopLossFlag=true;
+                }
                 auto lastAddPositionPrice = openAskPrice - martinPositionIntervals[currentMartinIndex];
                 nextStopProfitPrice = lastAddPositionPrice + martinStopProfitTargets[currentMartinIndex];
             }
             if (op == Operation::SELL) {
-                if (currentMartinIndex < martinPositionIntervals.size())
+                if (currentMartinIndex < martinPositionIntervals.size()-1) {
                     nextAddPositionPrice = openBidPrice + martinPositionIntervals[currentMartinIndex + 1];
+                } else {
+                    stopLossFlag=true;
+                }
                 auto lastAddPositionPrice = openBidPrice + martinPositionIntervals[currentMartinIndex];
                 nextStopProfitPrice = lastAddPositionPrice - martinStopProfitTargets[currentMartinIndex];
             }
@@ -128,14 +135,12 @@ public:
 
         auto currentArrayIndex = openArrayIndex + 1;
         while (true) {
-            bool stopLossFlag = currentMartinIndex == martinPositionIntervals.size();
             // early stop (reach the end of extDataFrame)
             if (currentArrayIndex >= extDataFrame_.size()) {
                 martinResult.closeArrayIndex_ = extDataFrame_.size() - 1;
                 martinResult.closeType_ = CloseType::STOP_EARLY;
                 return martinResult;
             }
-
             // skip large window if possible
             if (couldSkipWindow(op, stopLossFlag, stopLossPrice, nextStopProfitPrice, nextAddPositionPrice,
                                 extDataFrame_.futureBidMaxLargeWindow_[currentArrayIndex],
@@ -162,13 +167,15 @@ public:
 
                 // stop loss
                 auto const shouldStopLoss = [&]() {
-                    if (op == Operation::BUY) {
-                        // stop loss is SELL(in bid price)
-                        return stopLossFlag && stopLossPrice >= currentBid;
-                    }
-                    if (op == Operation::SELL) {
-                        // stop loss is BUY(in ask price)
-                        return stopLossFlag && stopLossPrice <= currentAsk;
+                    if(stopLossFlag){
+                        if (op == Operation::BUY) {
+                            // stop loss is SELL(in bid price)
+                            return stopLossFlag && stopLossPrice >= currentBid;
+                        }
+                        if (op == Operation::SELL) {
+                            // stop loss is BUY(in ask price)
+                            return stopLossFlag && stopLossPrice <= currentAsk;
+                        }
                     }
                     return false;
                 }();

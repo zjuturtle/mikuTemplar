@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "core/tick.h"
 
 namespace MikuTemplar{
@@ -32,6 +33,22 @@ struct OriginDataFrame {
         bid_.push_back(tick.bid_);
         ask_.push_back(tick.ask_);
         datetime_.push_back(tick.datatime_);
+    }
+
+    T bidMax() const {
+        return *std::max_element(bid_.cbegin(), bid_.cend());
+    }
+
+    T bidMin() const {
+        return *std::min_element(bid_.cbegin(), bid_.cend());
+    }
+
+    T askMax() const {
+        return *std::max_element(ask_.cbegin(), ask_.cend());
+    }
+
+    T askMin() const {
+        return *std::min_element(ask_.cbegin(), ask_.cend());
     }
 
     Tick<T> operator[](std::size_t idx) const {
