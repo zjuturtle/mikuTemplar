@@ -178,6 +178,12 @@ ExtDataFrame<T> loadExtCsv(const std::string &inputFile) {
             extDataFrame.futureAskMinLargeWindow_.push_back(atoi(tmp[11].c_str()));
         }
     }
+    for (std::size_t i=0;i<extDataFrame.index_.size()-1;i++) {
+        if (extDataFrame.index_[i+1] <= extDataFrame.index_[i]) {
+            std::cout << "[WARN]extDataFrame.index_[" << i +1 << "]=" << extDataFrame.index_[i+1]
+                      << "<= extDataFrame.index_["<< i << "]=" << extDataFrame.index_[i] << std::endl;
+        }
+    }
     return extDataFrame;
 }
 
@@ -194,6 +200,15 @@ OriginDataFrame<T> loadOriginCsv(const std::string &inputFile) {
             originDataFrame.datetime_.push_back(trimCopy(tmp[1]));
             originDataFrame.bid_.push_back(atoi(tmp[2].c_str()));
             originDataFrame.ask_.push_back(atoi(tmp[3].c_str()));
+
+            if (originDataFrame.index_.size() >= 2) {
+                auto lastIndex = originDataFrame.index_.size() - 1;
+                if (originDataFrame.index_[lastIndex-1] >= originDataFrame.index_[lastIndex]) {
+                    std::cout << "[WARN]originDataFrame.index_[" << lastIndex-1 << "]=" << originDataFrame.index_[lastIndex-1]
+                              << "<= originDataFrame.index_["<< lastIndex << "]=" << originDataFrame.index_[lastIndex]
+                              << ". The original text is "<< line <<std::endl;
+                }
+            }
         }
     }
     return originDataFrame;

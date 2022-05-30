@@ -18,8 +18,8 @@ def read_forex_csv(csv_file:str, args):
     raw_df['datetime'] = pd.to_datetime(raw_df['datetime'], format='%Y%m%d %H%M%S%f')
     raw_df['datetime'] = raw_df['datetime'] - timedelta(hours=args.time_zone)
     raw_df=raw_df.drop(columns=['volume'])
-    raw_df['bid'] = np.round(args.point_factor * (raw_df['bid'] + args.point_offset)).apply(np.int16)
-    raw_df['ask'] = np.round(args.point_factor * (raw_df['ask'] + args.point_offset)).apply(np.int16)
+    raw_df['bid'] = np.round(args.pipettes_factor * (raw_df['bid'] + args.pipettes_offset)).apply(np.int16)
+    raw_df['ask'] = np.round(args.pipettes_factor * (raw_df['ask'] + args.pipettes_offset)).apply(np.int16)
     return raw_df[['datetime', 'bid', 'ask']]
 
 def extract(task:Task):
@@ -87,6 +87,6 @@ if __name__ == '__main__':
         with Pool(args.worker_num) as p:
             df_data_list=p.map(extract, all_tasks)
         print('[INFO]writing to output...')
-        final_df = pd.concat(df_data_list)
+        final_df = pd.concat(df_data_list, ignore_index=True)
         final_df.to_csv(args.output, index_label='index')
         print('[INFO]All done!')

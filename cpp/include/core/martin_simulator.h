@@ -31,8 +31,22 @@ public:
         std::vector<size_t> result;
         std::size_t extArrayIndex = 0;
         for (auto it = openOriginDataFrame.index_.cbegin(); it != openOriginDataFrame.index_.cend(); it++) {
+            auto beginExtArrayIndex = extArrayIndex;
+            
             while (true) {
+                
+                if (extArrayIndex >= extDataFrame_.index_.size()) {
+                    std::cout << "[WARN]Cannot locate openOriginDataFrame.index "<< *it
+                              << ", search from extArrayIndex "<< beginExtArrayIndex << std::endl;
+                    extArrayIndex = beginExtArrayIndex;  
+                    break;
+                }
                 if (extDataFrame_.index_[extArrayIndex] == *it) {
+                    if (*it >= 694600) {
+                        std::cout << "[DEBUG]Locate openOriginDataFrame.index " << *it 
+                                  << ", search from extArrayIndex "<< beginExtArrayIndex 
+                                  << ", hit extArrayIndex "<< extArrayIndex << std::endl;
+                    }
                     result.push_back(extArrayIndex);
                     break;
                 }

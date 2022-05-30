@@ -1,6 +1,6 @@
 #ifndef MIKU_TEMPLAR_CORE_MARTIN_INFO_H_
 #define MIKU_TEMPLAR_CORE_MARTIN_INFO_H_
-#include<vector>
+#include <vector>
 #include "core/martin_parameters.h"
 
 namespace MikuTemplar{
