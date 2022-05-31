@@ -46,6 +46,7 @@ int main(int argc, char *argv[]){
         lastMin = min;
         lastSec = sec;
     }
-
+    cout << "[INFO]Wrting into file..." << endl;
     saveOriginCsv(result["output"].as<string>(), outputDataFrame);
+    cout << "[INFO]All done" << endl;
 }

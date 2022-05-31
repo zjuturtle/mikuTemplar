@@ -42,11 +42,6 @@ public:
                     break;
                 }
                 if (extDataFrame_.index_[extArrayIndex] == *it) {
-                    if (*it >= 694600) {
-                        std::cout << "[DEBUG]Locate openOriginDataFrame.index " << *it 
-                                  << ", search from extArrayIndex "<< beginExtArrayIndex 
-                                  << ", hit extArrayIndex "<< extArrayIndex << std::endl;
-                    }
                     result.push_back(extArrayIndex);
                     break;
                 }
