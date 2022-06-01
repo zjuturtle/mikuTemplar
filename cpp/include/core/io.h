@@ -194,6 +194,9 @@ OriginDataFrame<T> loadOriginCsv(const std::string &inputFile) {
     if (file.is_open()) {
         std::string line;
         getline(file, line);
+        if (split(line).size() > 4) {
+            std::cout << "[WARN]Input file "<<inputFile<<" have extra columns, will be ignored."<<std::endl;
+        }
         while (getline(file, line)) {
             auto tmp = split(line);
             originDataFrame.index_.push_back(atoi(tmp[0].c_str()));
