@@ -237,11 +237,11 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
     std::fstream file(outputFile, std::ios::out);
     file << Key::INDEX << "," << Key::DATETIME << ","
          << Key::BID << "," << Key::ASK << ","
-         << Key::OPERATION << "," << Key::CLOSE_TYPE << "," << Key::CLOSE_ARRAY_INDEX << ","
+         << Key::OPERATION << "," << Key::CLOSE_TYPE << "," << Key::CLOSE_ARRAY_INDEX << "," << Key::CLOSE_RELATIVE_TIME << ","
          << Key::ADD_POSITION_COUNT;
 
     for (int i = 0; i < martinDataFrame.martinParameters_.positionIntervals_.size(); i++) {
-        file << "," << Key::ADD_POSITION_ARRAY_INDEX << i;
+        file << "," << Key::ADD_POSITION_ARRAY_INDEX << i << ","<<Key::ADD_POSITION_RELATIVE_TIME << i;
     }
     file << std::endl;
 
@@ -253,10 +253,17 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
              << toString(martinDataFrame.martinParameters_.op_) << ","
              << toString(martinDataFrame.closeType_[i]) << ","
              << martinDataFrame.closeArrayIndex_[i] << ","
+             << martinDataFrame.closeRelativeTime_[i] << ","
              << martinDataFrame.addPositionsArrayIndex_[i].size();
 
         for (auto it = martinDataFrame.addPositionsArrayIndex_[i].cbegin();
              it != martinDataFrame.addPositionsArrayIndex_[i].cend();
+             it++) {
+            file << "," << (*it);
+        }
+
+        for (auto it = martinDataFrame.addPositionsRelativeTime_[i].cbegin();
+             it != martinDataFrame.addPositionsRelativeTime_[i].cend();
              it++) {
             file << "," << (*it);
         }

@@ -6,6 +6,7 @@
 #include "core/martin_parameters.h"
 #include "core/origin_dataframe.h"
 #include "utils/thread_pool.hpp"
+#include "utils/helper.h"
 
 namespace MikuTemplar {
 
@@ -105,9 +106,11 @@ public:
         auto currentMartinIndex = 0;
         auto openBidPrice = extDataFrame_.bid_[openArrayIndex];
         auto openAskPrice = extDataFrame_.ask_[openArrayIndex];
+        auto openTimeSinceEpoch = extDataFrame_.datetime_[openArrayIndex];
         DATA_TYPE nextStopProfitPrice, nextAddPositionPrice, stopLossPrice;
         bool stopLossFlag = false;
         martinResult.addPositionsArrayIndex_.push_back(openArrayIndex);
+        martinResult.addPositionsRelativeTime_.push_back(0);
 
         stopLossPrice = [&]() {
             if (op == Operation::BUY)
@@ -208,6 +211,9 @@ public:
                 }();
                 if (shouldAddPosition) {
                     martinResult.addPositionsArrayIndex_.push_back(currentArrayIndex);
+                    martinResult.addPositionsRelativelTime_.push_back(
+                        getTimeFromEpochSecond(extDataFrame_.datetime_[currentArrayIndex]) - openTimeSinceEpoch
+                    );
                     updateMartin();
                     currentArrayIndex++;
                     break;
@@ -226,6 +232,8 @@ public:
                 if (shouldStopProfit) {
                     martinResult.closeArrayIndex_ = currentArrayIndex;
                     martinResult.closeType_ = CloseType::STOP_PROFIT;
+                    martinResult.closeRelativeTime_ =
+                        getTimeFromEpochSecond(extDataFrame_.datetime_[currentArrayIndex]) - openTimeSinceEpoch;
                     return martinResult;
                 }
                 currentArrayIndex++;

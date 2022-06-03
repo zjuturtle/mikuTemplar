@@ -2,16 +2,13 @@
 #include "core/io.h"
 #include "ortools/linear_solver/linear_solver.h"
 #include <iostream>
+#include "utils/helper.h"
 
 
 using namespace std;
 using namespace MikuTemplar;
 int main(int argc, char *argv[]){
-    MartinInfo m;
-    auto tt = loadMartinParametersJson("/Users/turtle/github/mikuTemplar/data/EURUSD/search.json");
-    m.p_ = tt[0];
-    vector<MartinInfo> mL;
-    mL.push_back(m);
-    saveMartinInfos("/Users/turtle/github/mikuTemplar/data/tt.json", mL);
-
+    auto a = getUtcSecond("2018-02-15 10:38:41.130");
+    auto b = getUtcSecond("2018-02-15 10:38:48.630");
+    cout << b-a << endl;
 }

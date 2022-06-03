@@ -9,8 +9,19 @@
 #include <algorithm> 
 #include <cctype>
 #include <locale>
+#include <ctime>
 
 namespace MikuTemplar{
+
+inline uint64_t getTimeFromEpochSecond(const std::string &str){
+    char drop;
+    std::tm time;
+    std::istringstream ss(str);
+    ss >> time.tm_year >> drop >> time.tm_mon >> drop >> time.tm_mday >> drop 
+       >> time.tm_hour >> drop >> time.tm_min >> drop >> time.tm_sec >> drop;
+    
+    return mktime(&time);
+}
 
 inline std::vector<std::string> split(const std::string &input, const char spliter=',') {
     std::vector<std::string> result;

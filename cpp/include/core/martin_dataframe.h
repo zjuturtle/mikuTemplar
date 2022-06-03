@@ -34,11 +34,14 @@ inline std::string toString(const CloseType &closeType) {
 }
 
 typedef std::vector<std::size_t> ArrayIndexList;
+typedef std::vector<uint64_t> TimeList;
 
 struct MartinResult {
     CloseType closeType_ = CloseType::NOT_CLOSE;
     std::size_t closeArrayIndex_ = 0;
+    uint64_t closeRelativeTime_ = 0;
     ArrayIndexList addPositionsArrayIndex_;
+    TimeList addPositionsRelativeTime_;
 };
 template <class T>
 struct MartinDataFrame : public OriginDataFrame<T> {
@@ -47,7 +50,9 @@ struct MartinDataFrame : public OriginDataFrame<T> {
     // Following variables have exact the same size of size()
     std::vector<CloseType> closeType_;
     std::vector<std::size_t> closeArrayIndex_;
+    std::vector<uint64_t> closeRelativeTime_;
     std::vector<ArrayIndexList> addPositionsArrayIndex_;
+    std::vector<uint64_t> addPositionsRelativeTime_;
 
     MartinDataFrame() {}
     MartinDataFrame(const MartinParameters &mP) : martinParameters_(mP) {}
@@ -55,7 +60,9 @@ struct MartinDataFrame : public OriginDataFrame<T> {
     void appendMartinResult(const MartinResult &martinResult, const Tick<T> &tick) {
         closeType_.push_back(martinResult.closeType_);
         closeArrayIndex_.push_back(martinResult.closeArrayIndex_);
+        closeRelativeTime_.push_back(martinResult.closeRelativeTime_);
         addPositionsArrayIndex_.push_back(martinResult.addPositionsArrayIndex_);
+        addPositionsRelativeTime_.push_back(martinResult.addPositionsRelativeTime_);
         this->append(tick);
     }
 
