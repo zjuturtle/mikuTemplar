@@ -68,7 +68,6 @@ ExtDataFrame<DATA_TYPE> extendMaxMin(const OriginDataFrame<DATA_TYPE> &input, co
     return result;
 }
 
-
 int main(int argc, char *argv[]){
     cxxopts::Options options("martin ext", "Generate ext data for fast martin simulating");
     options.add_options()

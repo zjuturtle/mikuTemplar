@@ -256,16 +256,9 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
              << martinDataFrame.closeRelativeTime_[i] << ","
              << martinDataFrame.addPositionsArrayIndex_[i].size();
 
-        for (auto it = martinDataFrame.addPositionsArrayIndex_[i].cbegin();
-             it != martinDataFrame.addPositionsArrayIndex_[i].cend();
-             it++) {
-            file << "," << (*it);
-        }
-
-        for (auto it = martinDataFrame.addPositionsRelativeTime_[i].cbegin();
-             it != martinDataFrame.addPositionsRelativeTime_[i].cend();
-             it++) {
-            file << "," << (*it);
+        for (auto j=0; j < martinDataFrame.addPositionsArrayIndex_[i].size();j++) {
+            file << "," << martinDataFrame.addPositionsArrayIndex_[i][j] 
+                 << "," << martinDataFrame.addPositionsRelativeTime_[i][j];
         }
 
         file << std::endl;

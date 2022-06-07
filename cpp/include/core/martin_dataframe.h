@@ -52,7 +52,7 @@ struct MartinDataFrame : public OriginDataFrame<T> {
     std::vector<std::size_t> closeArrayIndex_;
     std::vector<uint64_t> closeRelativeTime_;
     std::vector<ArrayIndexList> addPositionsArrayIndex_;
-    std::vector<uint64_t> addPositionsRelativeTime_;
+    std::vector<TimeList> addPositionsRelativeTime_;
 
     MartinDataFrame() {}
     MartinDataFrame(const MartinParameters &mP) : martinParameters_(mP) {}
