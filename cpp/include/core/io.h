@@ -6,6 +6,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <stdio.h>
+#include <time.h>
 
 #include "core/const.h"
 #include "core/martin_info.h"
@@ -155,6 +157,9 @@ template <class T>
 ExtDataFrame<T> loadExtCsv(const std::string &inputFile) {
     ExtDataFrame<T> extDataFrame;
     std::fstream file(inputFile, std::ios::in);
+
+    clock_t start,end;
+    start = clock(); 
     if (file.is_open()) {
         std::string line;
         getline(file, line);
@@ -184,6 +189,8 @@ ExtDataFrame<T> loadExtCsv(const std::string &inputFile) {
                       << "<= extDataFrame.index_["<< i << "]=" << extDataFrame.index_[i] << std::endl;
         }
     }
+    end=clock();
+    std::cout<< "[INFO]load ext file cost" <<double(end-start)/CLOCKS_PER_SEC<<"s"<<std::endl;
     return extDataFrame;
 }
 
@@ -191,6 +198,8 @@ template <class T>
 OriginDataFrame<T> loadOriginCsv(const std::string &inputFile) {
     OriginDataFrame<T> originDataFrame;
     std::fstream file(inputFile, std::ios::in);
+    clock_t start,end;
+    start = clock(); 
     if (file.is_open()) {
         std::string line;
         getline(file, line);
@@ -214,6 +223,8 @@ OriginDataFrame<T> loadOriginCsv(const std::string &inputFile) {
             }
         }
     }
+    end=clock();
+    std::cout<< "[INFO]load file cost" <<double(end-start)/CLOCKS_PER_SEC<<"s"<<std::endl;
     return originDataFrame;
 }
 

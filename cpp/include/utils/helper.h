@@ -34,6 +34,18 @@ inline std::vector<std::string> split(const std::string &input, const char split
     return result;
 }
 
+inline std::vector<std::string> split(const char *input, const char spliter=',') {
+    std::vector<std::string> result;
+    std::stringstream ss;
+    ss << input;
+    while( ss.good() ){
+        std::string substr;
+        std::getline(ss, substr, ',');
+        result.push_back( substr );
+    }
+    return result;
+}
+
 template<class T, class F>
 std::vector<T> cast(const std::vector<F> &input) {
     std::vector<T> result;
