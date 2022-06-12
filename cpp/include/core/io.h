@@ -71,7 +71,6 @@ inline void saveMartinInfos(const std::string &outputFile, const std::vector<Mar
     rapidjson::Value myArray(rapidjson::kArrayType);
     rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
     
-
     for (auto martinInfo : martinInfos) {
         rapidjson::Value martinInfoObj;
         martinInfoObj.SetObject();
@@ -122,22 +121,56 @@ inline void saveMartinInfos(const std::string &outputFile, const std::vector<Mar
 }
 
 template <class T>
-void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFrame) {
-    std::fstream file(outputFile, std::ios::out);
-    file << Key::INDEX << "," << Key::DATETIME << ","
-         << Key::BID << "," << Key::ASK << ","
-         << Key::FUTURE_BID_MAX_SMALL_WINDOW << extDataFrame.smallWindow_ << ","
-         << Key::FUTURE_BID_MIN_SMALL_WINDOW << extDataFrame.smallWindow_ << ","
-         << Key::FUTURE_BID_MAX_LARGE_WINDOW << extDataFrame.largeWindow_ << ","
-         << Key::FUTURE_BID_MIN_LARGE_WINDOW << extDataFrame.largeWindow_ << ","
-         << Key::FUTURE_ASK_MAX_SMALL_WINDOW << extDataFrame.smallWindow_ << ","
-         << Key::FUTURE_ASK_MIN_SMALL_WINDOW << extDataFrame.smallWindow_ << ","
-         << Key::FUTURE_ASK_MAX_LARGE_WINDOW << extDataFrame.largeWindow_ << ","
-         << Key::FUTURE_ASK_MIN_LARGE_WINDOW << extDataFrame.largeWindow_ << std::endl;
+void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFrame, bool cAPI=true) {
+    clock_t start,end;
+    start = clock(); 
+    if (cAPI){
+        // use C API seems much faster
+        auto file = fopen(outputFile.c_str(), "w");
+        char buffer[1024];
+        sprintf(buffer, "%s,%s,%s,%s,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d\n", 
+                Key::INDEX.c_str(), Key::DATETIME.c_str(),
+                Key::BID.c_str(), Key::ASK.c_str(), 
+                Key::FUTURE_BID_MAX_SMALL_WINDOW.c_str(), extDataFrame.smallWindow_,
+                Key::FUTURE_BID_MIN_SMALL_WINDOW.c_str(), extDataFrame.smallWindow_,
+                Key::FUTURE_BID_MAX_LARGE_WINDOW.c_str(), extDataFrame.largeWindow_,
+                Key::FUTURE_BID_MIN_LARGE_WINDOW.c_str(), extDataFrame.largeWindow_,
+                Key::FUTURE_ASK_MAX_SMALL_WINDOW.c_str(), extDataFrame.smallWindow_,
+                Key::FUTURE_ASK_MIN_SMALL_WINDOW.c_str(), extDataFrame.smallWindow_,
+                Key::FUTURE_ASK_MAX_LARGE_WINDOW.c_str(), extDataFrame.largeWindow_,
+                Key::FUTURE_ASK_MIN_LARGE_WINDOW.c_str(), extDataFrame.largeWindow_);
+        fwrite(buffer, strlen(buffer), 1, file);
+        for (std::size_t index = 0; index < extDataFrame.size(); index++) {
+            sprintf(buffer, "%ld,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", 
+                extDataFrame.index_[index], extDataFrame.datetime_[index].c_str(),
+                extDataFrame.bid_[index], extDataFrame.ask_[index], 
+                extDataFrame.futureBidMaxSmallWindow_[index],
+                extDataFrame.futureBidMinSmallWindow_[index],
+                extDataFrame.futureBidMaxLargeWindow_[index],
+                extDataFrame.futureBidMinLargeWindow_[index], 
+                extDataFrame.futureAskMaxSmallWindow_[index],
+                extDataFrame.futureAskMinSmallWindow_[index],
+                extDataFrame.futureAskMaxLargeWindow_[index],
+                extDataFrame.futureAskMinLargeWindow_[index]);
+                fwrite(buffer, strlen(buffer), 1, file);
+        }
+        fclose(file);
+    } else {
+        std::fstream file(outputFile, std::ios::out);
+        file << Key::INDEX << "," << Key::DATETIME << ","
+            << Key::BID << "," << Key::ASK << ","
+            << Key::FUTURE_BID_MAX_SMALL_WINDOW << extDataFrame.smallWindow_ << ","
+            << Key::FUTURE_BID_MIN_SMALL_WINDOW << extDataFrame.smallWindow_ << ","
+            << Key::FUTURE_BID_MAX_LARGE_WINDOW << extDataFrame.largeWindow_ << ","
+            << Key::FUTURE_BID_MIN_LARGE_WINDOW << extDataFrame.largeWindow_ << ","
+            << Key::FUTURE_ASK_MAX_SMALL_WINDOW << extDataFrame.smallWindow_ << ","
+            << Key::FUTURE_ASK_MIN_SMALL_WINDOW << extDataFrame.smallWindow_ << ","
+            << Key::FUTURE_ASK_MAX_LARGE_WINDOW << extDataFrame.largeWindow_ << ","
+            << Key::FUTURE_ASK_MIN_LARGE_WINDOW << extDataFrame.largeWindow_ << std::endl;
 
-    for (std::size_t index = 0; index < extDataFrame.size(); index++) {
-        file << extDataFrame.index_[index] << ","
-             << extDataFrame.datetime_[index] << ","
+        for (std::size_t index = 0; index < extDataFrame.size(); index++) {
+            file << extDataFrame.index_[index] << ","
+                 << extDataFrame.datetime_[index] << ","
              << extDataFrame.bid_[index] << ","
              << extDataFrame.ask_[index] << ","
              << extDataFrame.futureBidMaxSmallWindow_[index] << ","
@@ -149,8 +182,11 @@ void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFra
              << extDataFrame.futureAskMinSmallWindow_[index] << ","
              << extDataFrame.futureAskMaxLargeWindow_[index] << ","
              << extDataFrame.futureAskMinLargeWindow_[index] << std::endl;
+        }
+        file.close();
     }
-    file.close();
+    end=clock();
+    std::cout<< "[INFO]save ext file cost " <<double(end-start)/CLOCKS_PER_SEC<<"s"<<std::endl;
 }
 
 template <class T>
@@ -165,6 +201,7 @@ ExtDataFrame<T> loadExtCsv(const std::string &inputFile) {
         getline(file, line);
         extDataFrame.smallWindow_ = atoi(split(line)[4].substr(Key::FUTURE_BID_MAX_SMALL_WINDOW.size(), std::string::npos).c_str());
         extDataFrame.largeWindow_ = atoi(split(line)[6].substr(Key::FUTURE_BID_MAX_LARGE_WINDOW.size(), std::string::npos).c_str());
+        
         while (getline(file, line)) {
             auto tmp = split(line);
             extDataFrame.index_.push_back(atoi(tmp[0].c_str()));
@@ -224,7 +261,7 @@ OriginDataFrame<T> loadOriginCsv(const std::string &inputFile) {
         }
     }
     end=clock();
-    std::cout<< "[INFO]load file cost" <<double(end-start)/CLOCKS_PER_SEC<<"s"<<std::endl;
+    std::cout<< "[INFO]load file cost " <<double(end-start)/CLOCKS_PER_SEC<<"s"<<std::endl;
     return originDataFrame;
 }
 

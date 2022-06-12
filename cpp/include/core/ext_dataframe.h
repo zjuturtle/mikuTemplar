@@ -10,8 +10,8 @@ namespace MikuTemplar {
 
 template <class T>
 struct ExtDataFrame : public OriginDataFrame<T> {
-    size_t smallWindow_;
-    size_t largeWindow_;
+    int smallWindow_;
+    int largeWindow_;
 
     std::vector<T> futureBidMaxSmallWindow_;
     std::vector<T> futureBidMinSmallWindow_;
