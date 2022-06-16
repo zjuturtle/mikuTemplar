@@ -1,5 +1,5 @@
-#ifndef MIKU_TEMPLAR_CORE_ORIGIN_DATA_FRAME_H_
-#define MIKU_TEMPLAR_CORE_ORIGIN_DATA_FRAME_H_
+#ifndef MIKU_TEMPLAR_CORE_PREPROCESS_DATA_FRAME_H_
+#define MIKU_TEMPLAR_CORE_PREPROCESS_DATA_FRAME_H_
 
 #include <vector>
 #include <string>
@@ -9,13 +9,13 @@
 namespace MikuTemplar{
 
 template <class T>
-struct OriginDataFrame {
+struct PreprocessDataFrame {
     std::vector<size_t> index_;
     std::vector<T> bid_;
     std::vector<T> ask_;
     std::vector<std::string> datetime_;
 
-    void assign(const OriginDataFrame<T>& df) {
+    void assign(const PreprocessDataFrame<T>& df) {
         this->bid_ = df.bid_;
         this->ask_ = df.ask_;
         this->datetime_ = df.datetime_;

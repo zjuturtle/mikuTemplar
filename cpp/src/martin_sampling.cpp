@@ -1,7 +1,7 @@
 #include "utils/cxxopt.hpp"
 #include "core/io.h"
 #include "core/ext_dataframe.h"
-#include "core/origin_dataframe.h"
+#include "core/preprocess_dataframe.h"
 #include <string>
 #include <vector>
 #include <iostream>
@@ -25,9 +25,9 @@ int main(int argc, char *argv[]){
         exit(0);
     }
     cout << "[INFO]Start loading..." << endl;
-    auto inputDataFrame = loadOriginCsv<DATA_TYPE>(result["input"].as<string>());
+    auto inputDataFrame = loadPreprocessCsv<DATA_TYPE>(result["input"].as<string>());
     cout << "[INFO]Start sampling..." << endl;
-    OriginDataFrame<DATA_TYPE> outputDataFrame;
+    PreprocessDataFrame<DATA_TYPE> outputDataFrame;
     int lastHour = -1;
     int lastMin = -1;
     int lastSec = -1;
@@ -47,6 +47,6 @@ int main(int argc, char *argv[]){
         lastSec = sec;
     }
     cout << "[INFO]Wrting into file..." << endl;
-    saveOriginCsv(result["output"].as<string>(), outputDataFrame);
+    savePreprocessCsv(result["output"].as<string>(), outputDataFrame);
     cout << "[INFO]All done" << endl;
 }

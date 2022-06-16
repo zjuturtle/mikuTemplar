@@ -4,7 +4,7 @@
 #include "core/io.h"
 #include "core/martin_dataframe.h"
 #include "core/martin_parameters.h"
-#include "core/origin_dataframe.h"
+#include "core/preprocess_dataframe.h"
 #include "utils/thread_pool.hpp"
 #include "utils/helper.h"
 
@@ -23,21 +23,21 @@ public:
     }
 
     /**
-     * @brief Search every hit in extDataFrame by given OriginDataFrame
+     * @brief Search every hit in extDataFrame by given PreprocessDataFrame
      *
-     * @param openOriginDataFrame
+     * @param openPreprocessDataFrame
      * @return vector<size_t>
      */
-    std::vector<std::size_t> locateOpenArrayIndex(const OriginDataFrame<T> &openOriginDataFrame) const {
+    std::vector<std::size_t> locateOpenArrayIndex(const PreprocessDataFrame<T> &openPreprocessDataFrame) const {
         std::vector<size_t> result;
         std::size_t extArrayIndex = 0;
-        for (auto it = openOriginDataFrame.index_.cbegin(); it != openOriginDataFrame.index_.cend(); it++) {
+        for (auto it = openPreprocessDataFrame.index_.cbegin(); it != openPreprocessDataFrame.index_.cend(); it++) {
             auto beginExtArrayIndex = extArrayIndex;
             
             while (true) {
                 
                 if (extArrayIndex >= extDataFrame_.index_.size()) {
-                    std::cout << "[WARN]Cannot locate openOriginDataFrame.index "<< *it
+                    std::cout << "[WARN]Cannot locate openPreprocessDataFrame.index "<< *it
                               << ", search from extArrayIndex "<< beginExtArrayIndex << std::endl;
                     extArrayIndex = beginExtArrayIndex;  
                     break;
@@ -53,9 +53,9 @@ public:
     }
 
     MartinDataFrame<T> run(
-        const OriginDataFrame<T> &openOriginDataFrame,
+        const PreprocessDataFrame<T> &openPreprocessDataFrame,
         const MartinParameters &martinParameters) const {
-        return run(locateOpenArrayIndex(openOriginDataFrame),
+        return run(locateOpenArrayIndex(openPreprocessDataFrame),
                    martinParameters);
     }
 

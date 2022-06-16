@@ -6,7 +6,7 @@
 #include "core/io.h"
 #include "core/martin_dataframe.h"
 #include "core/martin_simulator.h"
-#include "core/origin_dataframe.h"
+#include "core/preprocess_dataframe.h"
 #include "core/martin_optimizer.h"
 #include "utils/cxxopt.hpp"
 
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     auto martinParametersList = loadMartinParametersJson(args["input_search"].as<string>());
 
     auto extDataFrame = loadExtCsv<DATA_TYPE>(args["input_ext"].as<string>());
-    auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(args["input_open"].as<string>());
+    auto openPreprocessDataFrame = loadPreprocessCsv<DATA_TYPE>(args["input_open"].as<string>());
 
     MartinSimulator mSim(extDataFrame);
     MartinOptimizer mo;
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     double bestProfit = numeric_limits<double>::min();
     vector<MartinInfo> martinInfos;
     for (auto &martinParameters : martinParametersList) {
-        auto martinDataFrame = mSim.run(openOriginDataFrame, martinParameters);
+        auto martinDataFrame = mSim.run(openPreprocessDataFrame, martinParameters);
         auto martinInfo = martinDataFrame.analyze(mo);
         martinInfos.push_back(martinInfo);
         if (!martinInfo.s_.bestLots_.empty() && martinInfo.s_.bestProfit_ > bestProfit) {

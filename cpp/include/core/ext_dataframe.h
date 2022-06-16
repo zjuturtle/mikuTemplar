@@ -4,12 +4,12 @@
 #include <string>
 #include <vector>
 
-#include "core/origin_dataframe.h"
+#include "core/preprocess_dataframe.h"
 
 namespace MikuTemplar {
 
 template <class T>
-struct ExtDataFrame : public OriginDataFrame<T> {
+struct ExtDataFrame : public PreprocessDataFrame<T> {
     int smallWindow_;
     int largeWindow_;
 

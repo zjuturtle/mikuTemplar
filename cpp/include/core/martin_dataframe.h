@@ -9,7 +9,7 @@
 #include "core/martin_info.h"
 #include "core/martin_optimizer.h"
 #include "core/operation.h"
-#include "core/origin_dataframe.h"
+#include "core/preprocess_dataframe.h"
 
 namespace MikuTemplar {
 
@@ -44,7 +44,7 @@ struct MartinResult {
     TimeList addPositionsRelativeTime_;
 };
 template <class T>
-struct MartinDataFrame : public OriginDataFrame<T> {
+struct MartinDataFrame : public PreprocessDataFrame<T> {
     MartinParameters martinParameters_;
 
     // Following variables have exact the same size of size()

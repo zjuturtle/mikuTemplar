@@ -15,7 +15,7 @@
 #include "core/martin_dataframe.h"
 #include "core/martin_info.h"
 #include "core/martin_parameters.h"
-#include "core/origin_dataframe.h"
+#include "core/preprocess_dataframe.h"
 #include "core/tick.h"
 #include "utils/helper.h"
 #include "utils/rapidjson/document.h"
@@ -198,11 +198,42 @@ ExtDataFrame<T> loadExtCsv(const std::string &inputFile, bool cAPI = true) {
 
     if (cAPI) {
         auto file = fopen(inputFile.c_str(), "r");
-        int smallWindow, largeWindow;
-        char drop[1024];
-        fscanf(file, "index,datetime,bid,ask,futureBidMaxSmallWindow%d,futureBidMinSmallWindow%d,%s",drop);
+        int smallWindow;
+        int largeWindow;
+        char drop0[1024];
+        char drop1[1024];
+        fscanf(file, "index,datetime,bid,ask,futureBidMaxSmallWindow%d,%[^,],futureBidMaxLargeWindow%d,%[^\n]\n",&smallWindow,drop0,&largeWindow,drop1);
         extDataFrame.smallWindow_ = smallWindow;
         extDataFrame.largeWindow_ = largeWindow;
+
+        std::size_t index;
+        char datetime[64];
+        int bid, ask;
+        int futureBidMaxSmallWindow, futureBidMinSmallWindow, futureBidMaxLargeWindow, futureBidMinLargeWindow;
+        int futureAskMaxSmallWindow, futureAskMinSmallWindow, futureAskMaxLargeWindow, futureAskMinLargeWindow;
+
+        while(fscanf(file, "%ld,%[^,],%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", 
+              &index, datetime, &bid, &ask, 
+              &futureBidMaxSmallWindow, &futureBidMinSmallWindow, &futureBidMaxLargeWindow, &futureBidMinLargeWindow,
+              &futureAskMaxSmallWindow, &futureAskMinSmallWindow, &futureAskMaxLargeWindow, &futureAskMinLargeWindow) != EOF) {
+
+            extDataFrame.index_.push_back(index);
+            extDataFrame.datetime_.push_back(trimCopy(std::string(datetime)));
+            extDataFrame.bid_.push_back(bid);
+            extDataFrame.ask_.push_back(ask);
+
+            extDataFrame.futureBidMaxSmallWindow_.push_back(futureBidMaxSmallWindow);
+            extDataFrame.futureBidMinSmallWindow_.push_back(futureBidMinSmallWindow);
+            extDataFrame.futureBidMaxLargeWindow_.push_back(futureBidMaxLargeWindow);
+            extDataFrame.futureBidMinLargeWindow_.push_back(futureBidMinLargeWindow);
+
+            extDataFrame.futureAskMaxSmallWindow_.push_back(futureAskMaxSmallWindow);
+            extDataFrame.futureAskMinSmallWindow_.push_back(futureAskMinSmallWindow);
+            extDataFrame.futureAskMaxLargeWindow_.push_back(futureAskMaxLargeWindow);
+            extDataFrame.futureAskMinLargeWindow_.push_back(futureAskMinLargeWindow);
+        }
+
+        fclose(file);
     } else {
         std::fstream file(inputFile, std::ios::in);
         if (file.is_open()) {
@@ -229,38 +260,43 @@ ExtDataFrame<T> loadExtCsv(const std::string &inputFile, bool cAPI = true) {
                 extDataFrame.futureAskMinLargeWindow_.push_back(atoi(tmp[11].c_str()));
             }
         }
-        for (std::size_t i = 0; i < extDataFrame.index_.size() - 1; i++) {
-            if (extDataFrame.index_[i + 1] <= extDataFrame.index_[i]) {
-                std::cout << "[WARN]extDataFrame.index_[" << i + 1 << "]=" << extDataFrame.index_[i + 1]
-                          << "<= extDataFrame.index_[" << i << "]=" << extDataFrame.index_[i] << std::endl;
-            }
+        file.close();
+    }
+    for (std::size_t i = 0; i < extDataFrame.index_.size() - 1; i++) {
+        if (extDataFrame.index_[i + 1] <= extDataFrame.index_[i]) {
+            std::cout << "[WARN]extDataFrame.index_[" << i + 1 << "]=" << extDataFrame.index_[i + 1]
+                        << "<= extDataFrame.index_[" << i << "]=" << extDataFrame.index_[i] << std::endl;
         }
     }
 
     end = clock();
-    std::cout << "[INFO]load ext file cost" << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+    std::cout << "[INFO]load ext file cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
     return extDataFrame;
 }
 
 template <class T>
-OriginDataFrame<T> loadOriginCsv(const std::string &inputFile, bool cAPI=true) {
-    OriginDataFrame<T> originDataFrame;
+PreprocessDataFrame<T> loadPreprocessCsv(const std::string &inputFile, bool cAPI=true) {
+    PreprocessDataFrame<T> PreprocessDataFrame;
     
     clock_t start, end;
     start = clock();
     if (cAPI) {
         auto file = fopen(inputFile.c_str(), "r");
         std::size_t index;
-        T bid, ask;
+        int bid;int ask;
         char datetime[64];
         char drop[1024];
-        fscanf(file, "%[^\n]\n", datetime);
-        while(fscanf(file, "%ld, %[^,], %d, %d\n", &index, datetime, bid, ask) != EOF) {
-            originDataFrame.index_.push_back(index);
-            originDataFrame.datetime_.push_back(trimCopy(std::string(datetime)));
-            originDataFrame.bid_.push_back(bid);
-            originDataFrame.ask_.push_back(ask);
+        fscanf(file, "%[^\n]\n", drop);
+        if (split(std::string(drop)).size() > 4) {
+            std::cout << "[WARN]Input file " << inputFile << " have extra columns, will be ignored." << std::endl;
         }
+        while(fscanf(file, "%ld,%[^,],%d,%d%[^\n]\n", &index, datetime, &bid, &ask, drop) != EOF) {
+            PreprocessDataFrame.index_.push_back(index);
+            PreprocessDataFrame.datetime_.push_back(trimCopy(std::string(datetime)));
+            PreprocessDataFrame.bid_.push_back(bid);
+            PreprocessDataFrame.ask_.push_back(ask);
+        }
+        fclose(file);
     } else {
         std::fstream file(inputFile, std::ios::in);
         if (file.is_open()) {
@@ -271,40 +307,56 @@ OriginDataFrame<T> loadOriginCsv(const std::string &inputFile, bool cAPI=true) {
             }
             while (getline(file, line)) {
                 auto tmp = split(line);
-                originDataFrame.index_.push_back(atoi(tmp[0].c_str()));
-                originDataFrame.datetime_.push_back(trimCopy(tmp[1]));
-                originDataFrame.bid_.push_back(atoi(tmp[2].c_str()));
-                originDataFrame.ask_.push_back(atoi(tmp[3].c_str()));
+                PreprocessDataFrame.index_.push_back(atoi(tmp[0].c_str()));
+                PreprocessDataFrame.datetime_.push_back(trimCopy(tmp[1]));
+                PreprocessDataFrame.bid_.push_back(atoi(tmp[2].c_str()));
+                PreprocessDataFrame.ask_.push_back(atoi(tmp[3].c_str()));
 
-                if (originDataFrame.index_.size() >= 2) {
-                    auto lastIndex = originDataFrame.index_.size() - 1;
-                    if (originDataFrame.index_[lastIndex - 1] >= originDataFrame.index_[lastIndex]) {
-                        std::cout << "[WARN]originDataFrame.index_[" << lastIndex - 1 << "]=" << originDataFrame.index_[lastIndex - 1]
-                                << "<= originDataFrame.index_[" << lastIndex << "]=" << originDataFrame.index_[lastIndex]
+                if (PreprocessDataFrame.index_.size() >= 2) {
+                    auto lastIndex = PreprocessDataFrame.index_.size() - 1;
+                    if (PreprocessDataFrame.index_[lastIndex - 1] >= PreprocessDataFrame.index_[lastIndex]) {
+                        std::cout << "[WARN]PreprocessDataFrame.index_[" << lastIndex - 1 << "]=" << PreprocessDataFrame.index_[lastIndex - 1]
+                                << "<= PreprocessDataFrame.index_[" << lastIndex << "]=" << PreprocessDataFrame.index_[lastIndex]
                                 << ". The original text is " << line << std::endl;
                     }
                 }
             }
+            file.close();
         }
     }
     end = clock();
     std::cout << "[INFO]load file cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
-    return originDataFrame;
+    return PreprocessDataFrame;
 }
 
 template <class T>
-void saveOriginCsv(const std::string &outputFile, const OriginDataFrame<T> &originDataFrame) {
-    std::fstream file(outputFile, std::ios::out);
-    file << Key::INDEX << "," << Key::DATETIME << ","
-         << Key::BID << "," << Key::ASK << std::endl;
+void savePreprocessCsv(const std::string &outputFile, const PreprocessDataFrame<T> &PreprocessDataFrame, bool cAPI=true) {
+    clock_t start, end;
+    start = clock();
+    if (cAPI) {
+        auto file = fopen(inputFile.c_str(), "r");
+        char buffer[1024];
+        sprintf(buffer, "%s,%s,%s,%s\n",
+                            Key::INDEX.c_str(), Key::DATETIME.c_str(),
+                            Key::BID.c_str(), Key::ASK.c_str());
+        fwrite()
+        fclose(file);
+    } else {
+        std::fstream file(outputFile, std::ios::out);
+        file << Key::INDEX << "," << Key::DATETIME << ","
+            << Key::BID << "," << Key::ASK << std::endl;
 
-    for (std::size_t index = 0; index < originDataFrame.size(); index++) {
-        file << originDataFrame.index_[index] << ","
-             << originDataFrame.datetime_[index] << ","
-             << originDataFrame.bid_[index] << ","
-             << originDataFrame.ask_[index] << std::endl;
+        for (std::size_t index = 0; index < PreprocessDataFrame.size(); index++) {
+            file << PreprocessDataFrame.index_[index] << ","
+                << PreprocessDataFrame.datetime_[index] << ","
+                << PreprocessDataFrame.bid_[index] << ","
+                << PreprocessDataFrame.ask_[index] << std::endl;
+        }
+        file.close();
     }
-    file.close();
+    end = clock();
+    std::cout << "[INFO]save preprocess Csv cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+
 }
 
 template <class T>

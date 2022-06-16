@@ -6,7 +6,7 @@
 #include "utils/queue_with_max_min.h"
 #include "core/io.h"
 #include "core/ext_dataframe.h"
-#include "core/origin_dataframe.h"
+#include "core/preprocess_dataframe.h"
 
 #ifndef DATA_TYPE
 #define DATA_TYPE int16_t
@@ -15,8 +15,8 @@
 using namespace std;
 using namespace MikuTemplar;
 
-OriginDataFrame<DATA_TYPE> drop(const OriginDataFrame<DATA_TYPE> &input) {
-    OriginDataFrame<DATA_TYPE> result;
+PreprocessDataFrame<DATA_TYPE> drop(const PreprocessDataFrame<DATA_TYPE> &input) {
+    PreprocessDataFrame<DATA_TYPE> result;
 
     result.append(input[0]);
     for (size_t index = 1; index < input.index_.size();index++) {
@@ -28,7 +28,7 @@ OriginDataFrame<DATA_TYPE> drop(const OriginDataFrame<DATA_TYPE> &input) {
     return result;
 }
 
-ExtDataFrame<DATA_TYPE> extendMaxMin(const OriginDataFrame<DATA_TYPE> &input, const int smallWindow, const int largeWindow) {
+ExtDataFrame<DATA_TYPE> extendMaxMin(const PreprocessDataFrame<DATA_TYPE> &input, const int smallWindow, const int largeWindow) {
     ExtDataFrame<DATA_TYPE> result;
     result.assign(input);
     result.smallWindow_ = smallWindow;
@@ -84,10 +84,10 @@ int main(int argc, char *argv[]){
       exit(0);
     }
     cout << "[INFO]start process" << endl;
-    auto originData = loadOriginCsv<DATA_TYPE>(result["input"].as<string>());
+    auto preprocessData = loadPreprocessCsv<DATA_TYPE>(result["input"].as<string>());
     cout << "[INFO]finish load" << endl;
     // Step 1: drop no change data
-    auto uniqueData = drop(originData);
+    auto uniqueData = drop(preprocessData);
     cout << "[INFO]finish drop" << endl;
     // Step 2: generate ExtDataFrame
     auto extDataFrame = extendMaxMin(uniqueData, 

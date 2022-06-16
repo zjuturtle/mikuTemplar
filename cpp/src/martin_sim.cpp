@@ -2,7 +2,7 @@
 #include "core/io.h"
 #include "core/ext_dataframe.h"
 #include "core/martin_simulator.h"
-#include "core/origin_dataframe.h"
+#include "core/preprocess_dataframe.h"
 #include "core/martin_dataframe.h"
 #include "core/martin_parameters.h"
 #include <string>
@@ -32,12 +32,12 @@ int main(int argc, char *argv[]){
     cout << "[INFO]Loading data..." << endl;
     auto operation = generateOperation(result["operation"].as<string>());
     auto extDataFrame = loadExtCsv<DATA_TYPE>(result["input_ext"].as<string>());
-    auto openOriginDataFrame = loadOriginCsv<DATA_TYPE>(result["input_open"].as<string>());
+    auto openPreprocessDataFrame = loadPreprocessCsv<DATA_TYPE>(result["input_open"].as<string>());
     cout << "[INFO]Finish data loading" << endl;
 
     MartinSimulator mSim(extDataFrame);
     
-    auto martinDataFrame = mSim.run(openOriginDataFrame, operation, 
+    auto martinDataFrame = mSim.run(openPreprocessDataFrame, operation, 
         cast<DATA_TYPE>(result["martin_position_intervals"].as<vector<int>>()), 
         cast<DATA_TYPE>(result["martin_stop_profits"].as<vector<int>>()),
         static_cast<DATA_TYPE>(result["martin_stop_loss"].as<int>()));
