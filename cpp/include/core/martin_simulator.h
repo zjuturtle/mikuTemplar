@@ -33,12 +33,11 @@ public:
         std::size_t extArrayIndex = 0;
         for (auto it = openPreprocessDataFrame.index_.cbegin(); it != openPreprocessDataFrame.index_.cend(); it++) {
             auto beginExtArrayIndex = extArrayIndex;
-            
             while (true) {
-                
                 if (extArrayIndex >= extDataFrame_.index_.size()) {
                     std::cout << "[WARN]Cannot locate openPreprocessDataFrame.index "<< *it
-                              << ", search from extArrayIndex "<< beginExtArrayIndex << std::endl;
+                              << ", search from extArrayIndex "<< beginExtArrayIndex 
+                              << ", datetime "<< extDataFrame_.datetime_[beginExtArrayIndex] << std::endl;
                     extArrayIndex = beginExtArrayIndex;  
                     break;
                 }

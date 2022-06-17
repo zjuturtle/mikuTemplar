@@ -71,8 +71,8 @@ ExtDataFrame<DATA_TYPE> extendMaxMin(const PreprocessDataFrame<DATA_TYPE> &input
 int main(int argc, char *argv[]){
     cxxopts::Options options("martin ext", "Generate ext data for fast martin simulating");
     options.add_options()
-        ("input", "input csv file path", cxxopts::value<std::string>())
-        ("output", "output csv file path", cxxopts::value<std::string>())
+        ("input", "input preprocess csv file path", cxxopts::value<std::string>())
+        ("output", "output ext csv file path", cxxopts::value<std::string>())
         ("small_window", "small data window size", cxxopts::value<int>()->default_value("10"))
         ("large_window", "large data window size", cxxopts::value<int>()->default_value("100"))
         ("h,help", "Print usage")

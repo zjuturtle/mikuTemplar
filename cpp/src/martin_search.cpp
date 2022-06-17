@@ -39,8 +39,16 @@ int main(int argc, char *argv[]) {
     MartinDataFrame<DATA_TYPE> bestMartinDataFrame;
     double bestProfit = numeric_limits<double>::min();
     vector<MartinInfo> martinInfos;
+
+    clock_t start = clock();
+    auto openArrayIndex = mSim.locateOpenArrayIndex(openPreprocessDataFrame);
+    clock_t end = clock();
+    cout << "[INFO]Martin simluate locate cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
     for (auto &martinParameters : martinParametersList) {
-        auto martinDataFrame = mSim.run(openPreprocessDataFrame, martinParameters);
+        clock_t start = clock();
+        auto martinDataFrame = mSim.run(openArrayIndex, martinParameters);
+        clock_t end = clock();
+        cout << "[INFO]Martin simluate single run cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
         auto martinInfo = martinDataFrame.analyze(mo);
         martinInfos.push_back(martinInfo);
         if (!martinInfo.s_.bestLots_.empty() && martinInfo.s_.bestProfit_ > bestProfit) {

@@ -129,7 +129,7 @@ void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFra
         // use C API seems much faster
         auto file = fopen(outputFile.c_str(), "w");
         char buffer[1024];
-        sprintf(buffer, "%s,%s,%s,%s,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d\n",
+        int count = sprintf(buffer, "%s,%s,%s,%s,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d,%s%d\n",
                 Key::INDEX.c_str(), Key::DATETIME.c_str(),
                 Key::BID.c_str(), Key::ASK.c_str(),
                 Key::FUTURE_BID_MAX_SMALL_WINDOW.c_str(), extDataFrame.smallWindow_,
@@ -140,9 +140,9 @@ void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFra
                 Key::FUTURE_ASK_MIN_SMALL_WINDOW.c_str(), extDataFrame.smallWindow_,
                 Key::FUTURE_ASK_MAX_LARGE_WINDOW.c_str(), extDataFrame.largeWindow_,
                 Key::FUTURE_ASK_MIN_LARGE_WINDOW.c_str(), extDataFrame.largeWindow_);
-        fwrite(buffer, strlen(buffer), 1, file);
+        fwrite(buffer, count, 1, file);
         for (std::size_t index = 0; index < extDataFrame.size(); index++) {
-            sprintf(buffer, "%ld,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+            count = sprintf(buffer, "%ld,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
                     extDataFrame.index_[index], extDataFrame.datetime_[index].c_str(),
                     extDataFrame.bid_[index], extDataFrame.ask_[index],
                     extDataFrame.futureBidMaxSmallWindow_[index],
@@ -153,7 +153,7 @@ void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFra
                     extDataFrame.futureAskMinSmallWindow_[index],
                     extDataFrame.futureAskMaxLargeWindow_[index],
                     extDataFrame.futureAskMinLargeWindow_[index]);
-            fwrite(buffer, strlen(buffer), 1, file);
+            fwrite(buffer, count, 1, file);
         }
         fclose(file);
     } else {
@@ -325,7 +325,7 @@ PreprocessDataFrame<T> loadPreprocessCsv(const std::string &inputFile, bool cAPI
         }
     }
     end = clock();
-    std::cout << "[INFO]load file cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+    std::cout << "[INFO]load preprocess file cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
     return PreprocessDataFrame;
 }
 
@@ -334,17 +334,23 @@ void savePreprocessCsv(const std::string &outputFile, const PreprocessDataFrame<
     clock_t start, end;
     start = clock();
     if (cAPI) {
-        auto file = fopen(inputFile.c_str(), "r");
+        auto file = fopen(outputFile.c_str(), "w");
         char buffer[1024];
-        sprintf(buffer, "%s,%s,%s,%s\n",
-                            Key::INDEX.c_str(), Key::DATETIME.c_str(),
-                            Key::BID.c_str(), Key::ASK.c_str());
-        fwrite()
+        int count=sprintf(buffer, "%s,%s,%s,%s\n",
+                          Key::INDEX.c_str(), Key::DATETIME.c_str(),
+                          Key::BID.c_str(), Key::ASK.c_str());
+        fwrite(buffer, count, 1, file);
+        for (std::size_t index = 0; index < PreprocessDataFrame.size(); index++) {
+            count=sprintf(buffer, "%ld,%s,%d,%d\n",
+                          PreprocessDataFrame.index_[index], PreprocessDataFrame.datetime_[index].c_str(),
+                          PreprocessDataFrame.bid_[index], PreprocessDataFrame.ask_[index]);
+            fwrite(buffer, count, 1, file);
+        }
         fclose(file);
     } else {
         std::fstream file(outputFile, std::ios::out);
         file << Key::INDEX << "," << Key::DATETIME << ","
-            << Key::BID << "," << Key::ASK << std::endl;
+             << Key::BID << "," << Key::ASK << std::endl;
 
         for (std::size_t index = 0; index < PreprocessDataFrame.size(); index++) {
             file << PreprocessDataFrame.index_[index] << ","
@@ -355,7 +361,7 @@ void savePreprocessCsv(const std::string &outputFile, const PreprocessDataFrame<
         file.close();
     }
     end = clock();
-    std::cout << "[INFO]save preprocess Csv cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+    std::cout << "[INFO]save preprocess csv cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
 
 }
 
@@ -377,8 +383,8 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
                                     Key::ADD_POSITION_ARRAY_INDEX.c_str(), i,
                                     Key::ADD_POSITION_RELATIVE_TIME.c_str(), i);
         }
-        sprintf(buffer + count, "\n");
-        fwrite(buffer, strlen(buffer), 1, file);
+        count = count + sprintf(buffer + count, "\n");
+        fwrite(buffer, count, 1, file);
 
         for (std::size_t i = 0; i < martinDataFrame.size(); i++) {
             int count = sprintf(buffer, "%ld,%s,%d,%d,%s,%s,%ld,%llu,%ld,",
@@ -396,8 +402,8 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
                                         martinDataFrame.addPositionsRelativeTime_[i][j]);
             }
 
-            sprintf(buffer + count, "\n");
-            fwrite(buffer, strlen(buffer), 1, file);
+            count = count + sprintf(buffer + count, "\n");
+            fwrite(buffer, count, 1, file);
         }
         fclose(file);
     } else {
@@ -433,7 +439,7 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
         file.close();
     }
     end = clock();
-    std::cout << "[INFO]save martin Csv cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+    std::cout << "[INFO]save martin csv cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
 }
 
 }  // namespace MikuTemplar
