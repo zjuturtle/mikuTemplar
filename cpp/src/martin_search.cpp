@@ -9,6 +9,7 @@
 #include "core/preprocess_dataframe.h"
 #include "core/martin_optimizer.h"
 #include "utils/cxxopt.hpp"
+#include "utils/timer.h"
 
 using namespace MikuTemplar;
 using namespace std;
@@ -40,15 +41,15 @@ int main(int argc, char *argv[]) {
     double bestProfit = numeric_limits<double>::min();
     vector<MartinInfo> martinInfos;
 
-    clock_t start = clock();
+
     auto openArrayIndex = mSim.locateOpenArrayIndex(openPreprocessDataFrame);
-    clock_t end = clock();
-    cout << "[INFO]Martin simluate locate cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+
     for (auto &martinParameters : martinParametersList) {
-        clock_t start = clock();
+        Timer timer;
+        timer.start();
         auto martinDataFrame = mSim.run(openArrayIndex, martinParameters);
-        clock_t end = clock();
-        cout << "[INFO]Martin simluate single run cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+        timer.end();
+        cout << "[INFO]Martin simluate single run cost " << timer.elapsedSeconds() << "s" << std::endl;
         auto martinInfo = martinDataFrame.analyze(mo);
         martinInfos.push_back(martinInfo);
         if (!martinInfo.s_.bestLots_.empty() && martinInfo.s_.bestProfit_ > bestProfit) {

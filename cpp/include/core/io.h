@@ -18,6 +18,7 @@
 #include "core/preprocess_dataframe.h"
 #include "core/tick.h"
 #include "utils/helper.h"
+#include "utils/timer.h"
 #include "utils/rapidjson/document.h"
 #include "utils/rapidjson/istreamwrapper.h"
 #include "utils/rapidjson/ostreamwrapper.h"
@@ -123,8 +124,8 @@ inline void saveMartinInfos(const std::string &outputFile, const std::vector<Mar
 
 template <class T>
 void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFrame, bool cAPI = true) {
-    clock_t start, end;
-    start = clock();
+    Timer timer;
+    timer.start();
     if (cAPI) {
         // use C API seems much faster
         auto file = fopen(outputFile.c_str(), "w");
@@ -186,15 +187,15 @@ void saveExtCsv(const std::string &outputFile, const ExtDataFrame<T> &extDataFra
         }
         file.close();
     }
-    end = clock();
-    std::cout << "[INFO]save ext file cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+    timer.end();
+    std::cout << "[INFO]save ext file cost " << timer.elapsedSeconds() << "s" << std::endl;
 }
 
 template <class T>
 ExtDataFrame<T> loadExtCsv(const std::string &inputFile, bool cAPI = true) {
     ExtDataFrame<T> extDataFrame;
-    clock_t start, end;
-    start = clock();
+    Timer timer;
+    timer.start();
 
     if (cAPI) {
         auto file = fopen(inputFile.c_str(), "r");
@@ -269,8 +270,8 @@ ExtDataFrame<T> loadExtCsv(const std::string &inputFile, bool cAPI = true) {
         }
     }
 
-    end = clock();
-    std::cout << "[INFO]load ext file cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+    timer.end();
+    std::cout << "[INFO]load ext file cost " << timer.elapsedSeconds() << "s" << std::endl;
     return extDataFrame;
 }
 
@@ -278,8 +279,8 @@ template <class T>
 PreprocessDataFrame<T> loadPreprocessCsv(const std::string &inputFile, bool cAPI=true) {
     PreprocessDataFrame<T> PreprocessDataFrame;
     
-    clock_t start, end;
-    start = clock();
+    Timer timer;
+    timer.start();
     if (cAPI) {
         auto file = fopen(inputFile.c_str(), "r");
         std::size_t index;
@@ -324,15 +325,15 @@ PreprocessDataFrame<T> loadPreprocessCsv(const std::string &inputFile, bool cAPI
             file.close();
         }
     }
-    end = clock();
-    std::cout << "[INFO]load preprocess file cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+    timer.end();;
+    std::cout << "[INFO]load preprocess file cost " << timer.elapsedSeconds() << "s" << std::endl;
     return PreprocessDataFrame;
 }
 
 template <class T>
 void savePreprocessCsv(const std::string &outputFile, const PreprocessDataFrame<T> &PreprocessDataFrame, bool cAPI=true) {
-    clock_t start, end;
-    start = clock();
+    Timer timer;
+    timer.start();
     if (cAPI) {
         auto file = fopen(outputFile.c_str(), "w");
         char buffer[1024];
@@ -360,15 +361,15 @@ void savePreprocessCsv(const std::string &outputFile, const PreprocessDataFrame<
         }
         file.close();
     }
-    end = clock();
-    std::cout << "[INFO]save preprocess csv cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+    timer.end();
+    std::cout << "[INFO]save preprocess csv cost " << timer.elapsedSeconds() << "s" << std::endl;
 
 }
 
 template <class T>
 void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &martinDataFrame, bool cAPI = true) {
-    clock_t start, end;
-    start = clock();
+    Timer timer;
+    timer.start();
     if (cAPI) {
         auto file = fopen(outputFile.c_str(), "w");
         char buffer[1024];
@@ -438,8 +439,8 @@ void saveMartinCsv(const std::string &outputFile, const MartinDataFrame<T> &mart
         }
         file.close();
     }
-    end = clock();
-    std::cout << "[INFO]save martin csv cost " << double(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
+    timer.end();
+    std::cout << "[INFO]save martin csv cost " << timer.elapsedSeconds() << "s" << std::endl;
 }
 
 }  // namespace MikuTemplar
